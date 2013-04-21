@@ -93,29 +93,34 @@ class VMReceiver (EventMixin, threading.Thread):
             data = "VM Allocation FAIL - Request Type = %s, CPU = %s, RAM = %s, DISK = %s \n" %  (new_vm_caract[len(new_vm_caract)-1], 
                     new_vm_caract[0], new_vm_caract[1], new_vm_caract[2])
         else:
-            data = "VM Allocation SUCESS - Request Type = %s, CPU = %s, RAM = %s, DISK = %s \n CoreS = %s, AggS = %s, EdgeS = %s, HostIP = %s\n" % (new_vm_caract[4], new_vm_caract[0], new_vm_caract[1], 
-                new_vm_caract[2], core_candidate, agg_candidate, edge_candidate, new_vm_ip)
-            try:
-                #NOtify host to start sending traffic to this new ip
-                log.debug("Notifying Outside host to start sending traffic for new VM...")    
-                #s.sendall(str(new_vm_ip)+"/"+str(new_vm_caract[3])+"/"+str(holding_time)+"/"+str(core_candidate))
-                #adata = str(new_vm_ip)+"/"+str(new_vm_caract[3])+"/"+str(holding_time)
-                #s.sendall(adata)
-                self.socket_tp.sendall(pickle.dumps([str(new_vm_ip),new_vm_caract[3],holding_time, 
-                    str(ouside_host_ip)]))
-                log.debug("Notifying Outside host to start sending traffic for new VM... DONE")
+
+            try :
+                data = "VM Allocation SUCESS - Request Type = %s, CPU = %s, RAM = %s, DISK = %s \n CoreS = %s, AggS = %s, EdgeS = %s, HostIP = %s\n" % (new_vm_caract[4], new_vm_caract[0], new_vm_caract[1], 
+                    new_vm_caract[2], core_candidate, agg_candidate, edge_candidate, new_vm_ip)
+                self.clientsocket.send(data)
+                log.debug("Notifying VM Requester of new VM Allocation... DONE")
             except Exception, e:
-                log.debug("Notifying Outside host to start sending traffic for new VM... FAIL")
-                #TODO: Later put this in a stack and as soon as connected, ask to send traffic
-                self.connectToTopologyGenerator()
-        try :
-            self.clientsocket.send(data)
-            log.debug("Notifying VM Requester of new VM Allocation... DONE")
-        except Exception, e:
-            log.debug("Notifying VM Requester of new VM Allocation... FAIL")
-            log.error("Trying to notify VM Requester of new VM allocation, but it's disconnected...")
+                log.debug("Notifying VM Requester of new VM Allocation... FAIL")
+                log.error("Trying to notify VM Requester of new VM allocation, but it's disconnected...")
+
+            self.notifyTrafficGenerator(str(new_vm_ip),new_vm_caract[3],holding_time, 
+                str(ouside_host_ip))
         
-    
+    def notifyTrafficGenerator(self, new_vm_ip, bw, holding_time, outside_host_ip):
+        try:
+            #NOtify host to start sending traffic to this new ip
+            log.debug("Notifying Outside host to start sending traffic for new VM...")    
+            #s.sendall(str(new_vm_ip)+"/"+str(new_vm_caract[3])+"/"+str(holding_time)+"/"+str(core_candidate))
+            #adata = str(new_vm_ip)+"/"+str(new_vm_caract[3])+"/"+str(holding_time)
+            #s.sendall(adata)
+            self.socket_tp.sendall(pickle.dumps([str(new_vm_ip),bw,holding_time, 
+                str(ouside_host_ip)]))
+            log.debug("Notifying Outside host to start sending traffic for new VM... DONE")
+        except Exception, e:
+            log.debug("Notifying Outside host to start sending traffic for new VM... FAIL")
+            #TODO: Later put this in a stack and as soon as connected, ask to send traffic
+            self.connectToTopologyGenerator()
+
     def connectToTopologyGenerator(self):
         try:
             self.socket_tp = socket(AF_UNIX, SOCK_STREAM)

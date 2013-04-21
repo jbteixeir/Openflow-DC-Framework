@@ -1,0 +1,13 @@
+README VM RAndom Requester
+
+Arguments
+1 - IP of controller
+2 - Port
+3 - Request Rate (time interval between requests)
+4 - number of types of users
+5+ - Percentage of bandwidth for each user
+
+Examples:
+sudo python ./tcp_client_poisson.py 127.0.0.1 3000 10 1 1
+
+sudo python ./tcp_client_poisson.py 127.0.0.1 3000 10 2 0.3 0.7
