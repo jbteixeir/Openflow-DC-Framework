@@ -85,7 +85,7 @@ class VMManager(object):
     #default algorithm
     DEFAULTALG = ND
     
-    def __init__(self, topology, stats, rules, vmreceiver, inithandler = None):
+    def __init__(self, topology, stats, rules, vmreceiver, inithandler = None, xencommunicator = None):
         #get other classes for information retrieval
         self.topology = topology
         self.stats = stats
@@ -292,15 +292,15 @@ class VMManager(object):
         '''
         Method handling the requests
         '''
-        log.info("Request Type = %s, CPU = %s, RAM = %s, DISK = %s, NETWORK = %s - New VM Request Arrived", event.request_type, event.cpu, event.ram, event.disk, event.network)
+        log.info("Request ID = %s, Request Type = %s, CPU = %s, RAM = %s, DISK = %s, NETWORK = %s, TIMEOUT = %s - New VM Request Arrived", event.vm_id, event.request_type, event.cpu, event.ram, event.disk, event.network, event.timeout)
         
         self.request_type = event.request_type
         if self.current_alg == self.ND :
             log.debug("Trying to allocate VM through Network-Driven Algorithm")
-            vm_allocation_result = self.networkDrivenAlgorithm((event.cpu, event.ram, event.disk, event.network, event.request_type))
+            vm_allocation_result = self.networkDrivenAlgorithm(event.vm_id, (event.cpu, event.ram, event.disk, event.network, event.request_type, event.timeout))
         elif self.current_alg == self.SD :
             log.debug("Trying to allocate VM through Server-Driven Algorithm")
-            vm_allocation_result = self.serverDrivenAlgorithm((event.cpu, event.ram, event.disk, event.network, event.request_type))
+            vm_allocation_result = self.serverDrivenAlgorithm(event.vm_id, (event.cpu, event.ram, event.disk, event.network, event.request_type, event.timeout))
         
         '''    
         if vm_allocation_result == False :
@@ -313,7 +313,7 @@ class VMManager(object):
     '''
     Algorithms
     '''
-    def networkDrivenAlgorithm(self, requirements):
+    def networkDrivenAlgorithm(self, vm_id ,requirements):
         '''
         Runs the Network Driven Algorithm for VirtualMachine Placement
         Objective:
@@ -408,7 +408,7 @@ class VMManager(object):
             #If a core switch is not found
             if self.core_candidate == None :
                 log.debug("No suitable core switch was found")
-                self.vmreceiver.notifyVMAllocation(requirements)
+                self.vmreceiver.notifyVMAllocation(vm_id, requirements)
                 #reinitialize all the variables
                 self.cleanVariables()
                 return False
@@ -434,7 +434,7 @@ class VMManager(object):
         # add to the allocated list
         self.vms_allocated[self.host_candidate].append(requirements)
         # set holding time
-        holding_time = nextTime(1/self.host_holding_time)
+        holding_time = requirements[4]
         threading.Timer(holding_time, self.removeVMAllocation, [self.host_candidate, requirements]).start()
         
         #install the rules
@@ -442,9 +442,8 @@ class VMManager(object):
         
         #notify the VM Requester
         host_ip = self.topology.hosts[self.host_candidate].ports[self.topology.hosts[self.host_candidate].ports.keys()[0]].ip_addresses[0]
-        #TODO: add also outside host, because iperf needs to be run on both hosts (outside and non outside)
 
-        self.vmreceiver.notifyVMAllocation(requirements, holding_time, host_ip, self.core_candidate, 
+        self.vmreceiver.notifyVMAllocation(vm_id, requirements, holding_time, host_ip, self.core_candidate, 
             self.agg_candidate, self.edge_candidate, self.topology.out_hosts[self.core_candidate][self.topology.out_hosts[self.core_candidate].keys()[0]][0][1])
         
         #reinitialize all the variables
@@ -457,7 +456,7 @@ class VMManager(object):
     
     
             
-    def serverDrivenAlgorithm(self, requirements):
+    def serverDrivenAlgorithm(self, vm_id, requirements):
         '''
         Runs the Server Driven Algorithm for VirtualMachine Placement
         Objective:
@@ -573,7 +572,7 @@ class VMManager(object):
             if self.host_candidate == None :
                 log.debug("No suitable host was found")
                 log.debug("Requirements = %s - Running SD Algorithm to allocate new VM... FAIL", requirements)
-                self.vmreceiver.notifyVMAllocation(requirements)
+                self.vmreceiver.notifyVMAllocation(vm_id, requirements)
                 return False
             
         except Exception, e :
@@ -599,7 +598,7 @@ class VMManager(object):
         
         #notify the VM Requester
         host_ip = self.topology.hosts[self.host_candidate].ports[self.topology.hosts[self.host_candidate].ports.keys()[0]].ip_addresses[0]
-        self.vmreceiver.notifyVMAllocation(requirements, holding_time, host_ip, self.core_candidate, 
+        self.vmreceiver.notifyVMAllocation(vm_id, requirements, holding_time, host_ip, self.core_candidate, 
             self.agg_candidate, self.edge_candidate, self.topology.out_hosts[self.core_candidate][self.topology.out_hosts[self.core_candidate].keys()[0]][0][1])
         
         #reinitialize all the variables

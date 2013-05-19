@@ -58,8 +58,10 @@ class IniHandler(object):
         '''
         log.debug("Section = %s, Key = %s - Trying to get values", section, key)
         try :
+
             return self.config.get(section, key)
-        except Exception:
+        except Exception, e:
+            print e
             log.error("INI File doesn't contain expected values")
             os._exit(0)
     

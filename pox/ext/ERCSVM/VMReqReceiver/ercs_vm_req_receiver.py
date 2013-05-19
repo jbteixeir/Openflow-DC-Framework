@@ -15,19 +15,29 @@ class VMRequest (Event) :
     '''
     TODO: maybe in the future include IO
     '''
-    def __init__ (self, time, cpu, ram, disk, network, request_type) :
+    def __init__ (self, vm_id, time, cpu, ram, disk, network, request_type, timeout) :
         Event.__init__(self)
+        self.vm_id = vm_id
         self.time = time
         self.cpu = cpu
         self.ram = ram
         self.disk = disk
         self.network = network
         self.request_type = request_type
+        self.timeout = timeout
 
 
 class VMReceiver (EventMixin, threading.Thread):
     '''
     Raises an event every time a new request arrives
+    TODO: Change request receiver to receive requests from both vmrequester(request generator)
+    and from the web platform
+        -For testing purposes keep the port for vmrequester opened
+            -OR modify the generator to adapt the Web platform behaviour (probably a smarter idea)
+        -FOr the web platform, open a new port, a then to allow multiple requests at the same time,
+        open a new port for each request. Summary: 1 port to negociate the next port for the request,
+        and also to know which vm belongs to each port
+            -Keep a track of request -> port relation
     '''
     _eventMixin_events = set([
                           VMRequest,
@@ -39,6 +49,8 @@ class VMReceiver (EventMixin, threading.Thread):
         self.ip = ""
         self.port = ""
         self.socket_tp = None
+        self.vm_counter = 0
+        self.vm_sockets = {}
         
         if inithandler == None :
             self.askForArgs()
@@ -85,28 +97,40 @@ class VMReceiver (EventMixin, threading.Thread):
         
         #Start the thread that notifies the VM Requester when the VM was allocated 
         
-    def notifyVMAllocation(self, new_vm_caract, holding_time = None, new_vm_ip = None, core_candidate = None, 
+    def notifyVMAllocation(self, vm_id, new_vm_caract, holding_time = None, new_vm_ip = None, core_candidate = None, 
             agg_candidate = None, edge_candidate = None, ouside_host_ip = None):
+
+        # Notify's the state of the allocation
+        # -FALSE if the allocation failed
+        # -IP Address of Host if allocation sucessfull
+        # 
+        # When fully integrated with xen, the ip address of virtualmachine should be returned, and not
+        # the ip address of the host.
 
         log.debug("Notifying VM Requester of new VM Allocation...")
         if new_vm_ip == None or core_candidate == None or agg_candidate == None or edge_candidate == None:
-            data = "VM Allocation FAIL - Request Type = %s, CPU = %s, RAM = %s, DISK = %s \n" %  (new_vm_caract[len(new_vm_caract)-1], 
-                    new_vm_caract[0], new_vm_caract[1], new_vm_caract[2])
+            # data = "VM Allocation FAIL - Request Type = %s, CPU = %s, RAM = %s, DISK = %s \n" %  (new_vm_caract[len(new_vm_caract)-1], 
+            #         new_vm_caract[0], new_vm_caract[1], new_vm_caract[2])
+            data = "FALSE"
         else:
+            # data = "VM Allocation SUCESS - Request Type = %s, CPU = %s, RAM = %s, DISK = %s \n CoreS = %s, AggS = %s, EdgeS = %s, HostIP = %s\n" % (new_vm_caract[4], new_vm_caract[0], new_vm_caract[1], 
+            #     new_vm_caract[2], core_candidate, agg_candidate, edge_candidate, new_vm_ip)
+            data = str(new_vm_ip)
 
-            try :
-                data = "VM Allocation SUCESS - Request Type = %s, CPU = %s, RAM = %s, DISK = %s \n CoreS = %s, AggS = %s, EdgeS = %s, HostIP = %s\n" % (new_vm_caract[4], new_vm_caract[0], new_vm_caract[1], 
-                    new_vm_caract[2], core_candidate, agg_candidate, edge_candidate, new_vm_ip)
-                self.clientsocket.send(data)
-                log.debug("Notifying VM Requester of new VM Allocation... DONE")
-            except Exception, e:
-                log.debug("Notifying VM Requester of new VM Allocation... FAIL")
-                log.error("Trying to notify VM Requester of new VM allocation, but it's disconnected...")
+        try :
+            self.vm_sockets[vm_id].send(data)
+            log.debug("Notifying VM Requester of new VM Allocation... DONE")
+        except Exception, e:
+            log.debug("Notifying VM Requester of new VM Allocation... FAIL")
+            log.error("Trying to notify VM Requester of new VM allocation, but it's disconnected...")
 
-            self.notifyTrafficGenerator(str(new_vm_ip),new_vm_caract[3],holding_time, 
-                str(ouside_host_ip))
+            self.notifyTrafficGenerator(new_vm_ip,new_vm_caract[3],holding_time, 
+                ouside_host_ip)
         
     def notifyTrafficGenerator(self, new_vm_ip, bw, holding_time, outside_host_ip):
+        '''
+        Connects with ERCSMNGenerator to start generating traffic from hosts
+        '''
         try:
             #NOtify host to start sending traffic to this new ip
             log.debug("Notifying Outside host to start sending traffic for new VM...")    
@@ -114,9 +138,10 @@ class VMReceiver (EventMixin, threading.Thread):
             #adata = str(new_vm_ip)+"/"+str(new_vm_caract[3])+"/"+str(holding_time)
             #s.sendall(adata)
             self.socket_tp.sendall(pickle.dumps([str(new_vm_ip),bw,holding_time, 
-                str(ouside_host_ip)]))
+                str(outside_host_ip)]))
             log.debug("Notifying Outside host to start sending traffic for new VM... DONE")
         except Exception, e:
+            print e
             log.debug("Notifying Outside host to start sending traffic for new VM... FAIL")
             #TODO: Later put this in a stack and as soon as connected, ask to send traffic
             self.connectToTopologyGenerator()
@@ -140,7 +165,8 @@ class VMReceiver (EventMixin, threading.Thread):
         while 1:
             log.info("Waiting for VM Requester connections...")
             self.clientsocket, self.clientaddr = serversocket.accept()
-            self.listenToRequest(self.clientaddr, self.clientsocket)
+            thread.start_new_thread(self.listenToRequest, (self.clientaddr, self.clientsocket))
+            # self.listenToRequest(self.clientaddr, self.clientsocket)
         serversocket.close()    
     
     def listenToRequest(self, clientaddr, clientsocket):
@@ -153,14 +179,20 @@ class VMReceiver (EventMixin, threading.Thread):
                     log.info("VM Requester Disconnected")
                     break
                 try :
-                    (cpu, ram, disk, network, request_type) = pickle.loads(data)
-                    log.debug("CPU = %s, RAM = %s, Disk = %s, Network = %s, Request Type = %s - New VM Request received", cpu, ram, disk, network, request_type)
+                    # (cpu, ram, disk, network, request_type, timeout) = pickle.loads(data)
+                    [cpu, ram, disk, network, request_type, timeout] = data.split("/",6)
+                    [cpu, ram, disk, network, request_type, timeout] = [int(cpu), int(ram), int(disk), int(network), int(request_type), int(timeout)]
                 except Exception, e:
                     log.warning("Corrupted Request Received")
                     print e
                     break
                 try :
-                    self.raiseEvent(VMRequest, time.time(), cpu, ram, disk, network, request_type)
+                    #Should use some locking mechanism, to prevent different threads from incrementing at the same time
+                    self.vm_counter +=1
+                    vm_id = self.vm_counter
+                    log.debug("ID = %s, CPU = %s, RAM = %s, Disk = %s, Network = %s, Request Type = %s, Timeout = %s - New VM Request received", vm_id, cpu, ram, disk, network, request_type, timeout)
+                    self.vm_sockets[vm_id] = clientsocket
+                    self.raiseEvent(VMRequest, vm_id, time.time(), cpu, ram, disk, network, request_type, timeout)
                 except Exception, e:
                     print e
                 '''

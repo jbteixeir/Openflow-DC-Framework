@@ -63,7 +63,9 @@ from ext.ERCSVM.VMManager import ercs_vm_manager
 from ext import ERCSTopology
 from ext.ERCSTopology import ercs_topology
 from ext.INIHandler.INIHandler import IniHandler
+from ext.XenCommunicator.xen_communicator import XenCommunicator
 import thread
+
 
 
 log = core.getLogger()
@@ -100,13 +102,21 @@ class ERCS():
         self.vmreceiver = VMReceiver(self.inihandler)
         log.info("ERCS VM Receiver - Ready")
         
+        #Initialize the Xen Communicator
+        log.info("Xen Communicator - Initializing...")
+        self.xencommunicator = XenCommunicator(self.inihandler)
+        log.info("Xen Communicator - Ready")
+
         #Start the ERCS VM Allocator
+        #If you want to use xen instead of simulating the allocation add self.xencommunicator in the 
+        #end of the arguments
         log.info("ERCS VM Manager - Initializing...")
-        self.vmmanager = VMManager(self.topology, self.stats, self.rules, self.vmreceiver, self.inihandler)
+        self.vmmanager = VMManager(self.topology, self.stats, self.rules, self.vmreceiver, 
+            self.inihandler)
         log.info("ERCS VM Manager - Ready")
         
         #run the ERCS VM Request Receicer
-        #so this thread closes when the main thread closes
+        #This thread closes when the main thread closes
         self.vmreceiver.daemon = True
         self.vmreceiver.start()
         
@@ -114,6 +124,7 @@ class ERCS():
         log.info("ERCS Stats Exporter - Initializing...")
         self.statsexporter = ERCSStatsExport(self.inihandler, self.topology, self.stats, self.vmmanager)
         log.info("ERCS Stats Exporter - Ready")
+
     
 def launch():
     

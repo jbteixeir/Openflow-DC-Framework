@@ -17,8 +17,11 @@ ADS = (IP, PORT)
 #request_rate - interval between requests
 request_rate = float(1/int(sys.argv[3]))
 
+#average vm timeout
+avg_timeout = int(sys.argv[4])
+
 #Number of user types
-num_usr_types = sys.argv[4]
+num_usr_types = sys.argv[5]
 
 #user type request percentage
 usr_type_percentage = {}
@@ -31,13 +34,13 @@ for type in range(int(num_usr_types)):
     else:
         usr_type_percentage[type] = (previous_type, previous_type+float(sys.argv[5+type]))
 
-    previous_type = previous_type + float( sys.argv[5+type])
+    previous_type = previous_type + float( sys.argv[6+type])
     
 if usr_type_percentage[len(usr_type_percentage)-1][1] > 1:
     print "*** Sum of percentage of each user type request cannot be larger than 1."
     exit(0)
 
-print usr_type_percentage
+#print usr_type_percentage
 tcpsoc = socket(AF_INET, SOCK_STREAM)
 
 def nextTime(rateParameter):
@@ -88,12 +91,17 @@ def startVMRequester ():
             #type of request it is going to do
             request_type = random.randint(0,100)/100
             final_request_type = None
+
+            #calculate a vm timeout
+            tmp_avg_timeout = int(nextTime(1/avg_timeout))
+            
             for usr_type in usr_type_percentage:
                 if (request_type >= usr_type_percentage[usr_type][0] and request_type <= usr_type_percentage[usr_type][1]):
                     final_request_type = usr_type + 1
 
-            tcpsoc.sendall(pickle.dumps([cpu, ram, disk, network, final_request_type]))
-            print "Request Sent - CPU = ", cpu, ", RAM = ", ram, ", DISK = ", disk, ", Network = ", network, ", Request Type = ", final_request_type
+            #tcpsoc.sendall(pickle.dumps([cpu, ram, disk, network, final_request_type, tmp_avg_timeout]))
+            tcpsoc.sendall(str(cpu)+"/"+str(ram)+"/"+str(disk)+"/"+str(network)+"/"+str(final_request_type)+"/"+str(tmp_avg_timeout))
+            print "Request Sent - CPU = ", cpu, ", RAM = ", ram, ", DISK = ", disk, ", Network = ", network, ", Request Type = ", final_request_type, "Timeout = ", tmp_avg_timeout
 
             print "Time since last request - ", int((time.time() - timer)), " sec\n"
 
