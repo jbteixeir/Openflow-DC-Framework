@@ -106,7 +106,6 @@ class Stats(EventMixin):
         self.requestBitRateForAllSwitches()
         #start periodical statistics collection
         thread.start_new_thread(self.requestPeriodicalStats, ())
-        log.info("ERCS Stats - ready")
     
     def requestPeriodicalStats(self):
         while(1) :
@@ -133,19 +132,19 @@ class Stats(EventMixin):
         if self.polling_time != 0:
             #ask if previous statistical data should be taken into consideration when calcutating the new stats
             #only makes sense
-            self.historial_ponderation = raw_input("Insert historical stats weight factor (between 0 and 1): ")
-            if self.historial_ponderation == "" :
-                self.historial_ponderation = self.HISTORICALPONDERATIONDEFAULT
+            self.historical_ponderation = raw_input("Insert historical stats weight factor (between 0 and 1): ")
+            if self.historical_ponderation == "" :
+                self.historical_ponderation = self.HISTORICALPONDERATIONDEFAULT
                 log.info("Historical Ponderation set to default - %s ", self.HISTORICALPONDERATIONDEFAULT)
-            while (not ercs_topology.is_number(self.historial_ponderation)):
-                if (float(self.historial_ponderation) > 1) or (float(self.historial_ponderation) < 0):
-                    self.historial_ponderation = raw_input("This is not a valid number, please insert a valid value: ")
+            while (not ercs_topology.is_number(self.historical_ponderation)):
+                if (float(self.historical_ponderation) > 1) or (float(self.historical_ponderation) < 0):
+                    self.historical_ponderation = raw_input("This is not a valid number, please insert a valid value: ")
             
-            self.historial_ponderation = float(self.historial_ponderation)
+            self.historical_ponderation = float(self.historical_ponderation)
             
         else :
             #In case of non periodical stats, don't take into consideration previous data 
-            self.historial_ponderation = 0
+            self.historical_ponderation = 0
     
     def getArgsFromIni(self, inithandler):
         '''
@@ -156,7 +155,7 @@ class Stats(EventMixin):
             key = "polling_time"
             self.polling_time = float(inithandler.read_ini_value(section, key))
             key = "hist_weight"
-            self.historial_ponderation = float(inithandler.read_ini_value(section, key))
+            self.historical_ponderation = float(inithandler.read_ini_value(section, key))
         except Exception:
             log.error("INI File doesn't contain expected values")
             os._exit(0)
@@ -193,7 +192,7 @@ class Stats(EventMixin):
             if (len (self.switch_port_stats_history[dpid])-1) != 0:
                 temp_hist_bit_rate = temp_hist_bit_rate / (len (self.switch_port_stats_history[dpid])-1)
                  
-            bit_rate_port_stats[port_no] = (self.historial_ponderation * temp_hist_bit_rate) + ((1-self.historial_ponderation)* newest_bit_rate)
+            bit_rate_port_stats[port_no] = (self.historical_ponderation * temp_hist_bit_rate) + ((1-self.historical_ponderation)* newest_bit_rate)
         
         log.debug("#ports = %s - Returning Bitrate stats indexed by port", len(bit_rate_port_stats))
         

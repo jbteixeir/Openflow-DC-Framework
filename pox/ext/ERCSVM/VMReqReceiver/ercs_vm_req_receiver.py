@@ -124,8 +124,8 @@ class VMReceiver (EventMixin, threading.Thread):
             log.debug("Notifying VM Requester of new VM Allocation... FAIL")
             log.error("Trying to notify VM Requester of new VM allocation, but it's disconnected...")
 
-            self.notifyTrafficGenerator(new_vm_ip,new_vm_caract[3],holding_time, 
-                ouside_host_ip)
+        self.notifyTrafficGenerator(new_vm_ip,new_vm_caract[3],holding_time, 
+            ouside_host_ip)
         
     def notifyTrafficGenerator(self, new_vm_ip, bw, holding_time, outside_host_ip):
         '''
@@ -176,7 +176,7 @@ class VMReceiver (EventMixin, threading.Thread):
                 try :
                     data = clientsocket.recv(2048)
                 except Exception, e:
-                    log.info("VM Requester Disconnected")
+                    log.info("IP = %s, Port = %s - VM Requester Disconnected ", clientaddr[0] ,clientaddr[1])
                     break
                 try :
                     # (cpu, ram, disk, network, request_type, timeout) = pickle.loads(data)
@@ -191,6 +191,7 @@ class VMReceiver (EventMixin, threading.Thread):
                     self.vm_counter +=1
                     vm_id = self.vm_counter
                     log.debug("ID = %s, CPU = %s, RAM = %s, Disk = %s, Network = %s, Request Type = %s, Timeout = %s - New VM Request received", vm_id, cpu, ram, disk, network, request_type, timeout)
+                    log.info("New Virtual Machine Request Received")
                     self.vm_sockets[vm_id] = clientsocket
                     self.raiseEvent(VMRequest, vm_id, time.time(), cpu, ram, disk, network, request_type, timeout)
                 except Exception, e:

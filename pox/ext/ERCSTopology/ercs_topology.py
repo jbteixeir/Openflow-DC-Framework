@@ -98,8 +98,6 @@ class Topology(object):
         
         #TODO: Figure out a way of discovering the hosts automatically. The think below doesn't work        
         #thread.start_new_thread(self.pingHostsFromPool, (self.host_ip_pool[0], self.host_ip_pool[1]))
-        
-        log.info("ERCS Topology - ready")
     
     '''
     Experiences
@@ -108,21 +106,6 @@ class Topology(object):
         """
         Handles packet in messages from the switch.
         """
-
-        packet = event.parsed # This is the parsed packet data.
-        if not packet.parsed:
-            log.warning("Ignoring incomplete packet")
-            return
-        print "new packet!"
-        if not packet.type == ethernet.ARP_TYPE :
-            print "!!!!!!!!!!!!!!!!"
-            print packet
-            print packet.next
-            print packet.next.srcip
-            print packet.next.dstip
-            print "!!!!!!!!!!!!!!!!"
-        else:
-            print "arp arrived and should have arrived!"
     '''
     '''
     Auxiliary methods

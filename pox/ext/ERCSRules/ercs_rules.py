@@ -69,8 +69,6 @@ class Rules(object):
         self.host_rules = host_rules
         self.supernetting = supernetting
         self.ercs_topology = ercs_topology
-        
-        log.info("ERCS Rules - ready")
 
     def installAllHostRules(self, host_id, host_ip, core_id, core_port_in, core_port_out, agg_id, 
                          agg_port_in, agg_port_out, edge_id, edge_port_in, edge_port_out, queue_type):
@@ -78,7 +76,7 @@ class Rules(object):
         Install a rule in all switches to give the host connectivity
         Take in consideration supernetting (or not)
         '''
-        log.debug("Installing all rules for each switch type...")
+        log.info("Installing all rules for each switch type...")
         #if supernetting flag is activated
         if self.supernetting :
             #Not implemented yet
@@ -98,13 +96,13 @@ class Rules(object):
             
             #check if any error occured
             if (edge_rules == None) or (agg_rules == None) or (core_rules == None) :
-                log.debug("Installing all rules for each switch type... Fail")
+                log.info("Installing all rules for each switch type... Fail")
                 return
             
             #store all of the rules in the dictionary
             self.host_rules[host_id] = HostRules(core_rules, agg_rules, edge_rules)
         
-        log.debug("Installing all rules for each switch type... Done")
+        log.info("Installing all rules for each switch type... Done")
             
     def installHostRule(self, host_id, host_ip, switch_id, switch_port_in, switch_port_out, queue_type):
         '''
