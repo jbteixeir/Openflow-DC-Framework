@@ -400,7 +400,7 @@ def waitControllertoConnectTpGenerator(ercs_topo, net, *args):
         receiveDataFromController(conn, ercs_topo, net)
 
 def receiveDataFromController(conn, ercs_topo, net):
-    info( '*** Waiting for data from the controller...' )
+    info( '\n*** Waiting for data from the controller...' )
     hostIperfport = list()
     while 1:
         try:

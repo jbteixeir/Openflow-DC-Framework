@@ -38,20 +38,14 @@ log = core.getLogger()
 from pox.lib.packet.ethernet import ethernet
 from pox.lib.packet.ipv4 import ipv4
 from pox.lib.packet.arp import arp
-
 from pox.lib.recoco.recoco import Timer
-
-import pox.openflow.libopenflow_01 as of
-
-import pox.openflow.discovery as discovery
-
 from pox.lib.revent.revent import EventMixin
+from ext.Structures.ercs_host import HostJoin, HostTimeout, HostMove
 
 import time
-
 import string
-
-from ext.ERCSStructures.ercs_host import HostJoin, HostTimeout, HostMove
+import pox.openflow.libopenflow_01 as of
+import pox.openflow.discovery as discovery
 
 # Times (in seconds) to use for differente timouts:
 timeoutSec = dict(

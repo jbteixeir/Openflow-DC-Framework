@@ -52,16 +52,14 @@ ERCS VMReceiver
     TODO: Raise the event
     *currently only support ipv4 (maybe later IPv6
 '''
-from ext.ERCSStats.ercs_stats import Stats
-from ext.ERCSStats.ercs_stats_export import ERCSStatsExport
-from ext.ERCSTopology.ercs_topology import Topology
-from ext.ERCSRules.ercs_rules import Rules
+from ext.Stats.ercs_stats import Stats
+from ext.Stats.ercs_stats_export import ERCSStatsExport
+from ext.Topology.ercs_topology import Topology
+from ext.Rules.ercs_rules import Rules
 from pox.core import core
-from ext.ERCSVM.VMManager.ercs_vm_manager import VMManager
-from ext.ERCSVM.VMReqReceiver.ercs_vm_req_receiver import VMReceiver
-from ext.ERCSVM.VMManager import ercs_vm_manager
-from ext import ERCSTopology
-from ext.ERCSTopology import ercs_topology
+from ext.VM.vm_request_handler import VMReceiver
+from ext.VM.vm_manager import VMManager
+from ext.Topology import ercs_topology
 from ext.INIHandler.INIHandler import IniHandler
 from ext.XenCommunicator.xen_communicator import XenCommunicator
 import thread
