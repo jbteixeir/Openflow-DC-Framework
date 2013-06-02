@@ -76,7 +76,6 @@ class Topology(object):
         self.switch_links = {}
         self.host_links = {}
         self.out_hosts = {}
-    
         
         #Add Listener for openflow, Topology, host_tracker
         core.openflow.addListeners(self)
@@ -89,7 +88,6 @@ class Topology(object):
             self.getArgsFromIni(inithandler)
         
         #ask if all the hosts have been discovered, so we can tell that the other switch are core switches
-        #TODO: Fix bugs
         t2 = threading.Thread(target=self.allHostsDiscovered, args=())
         t2.daemon = True
         t2.start()
@@ -98,15 +96,7 @@ class Topology(object):
         
         #TODO: Figure out a way of discovering the hosts automatically. The think below doesn't work        
         #thread.start_new_thread(self.pingHostsFromPool, (self.host_ip_pool[0], self.host_ip_pool[1]))
-    
-    '''
-    Experiences
-    
-    def _handle_PacketIn (self, event):
-        """
-        Handles packet in messages from the switch.
-        """
-    '''
+
     '''
     Auxiliary methods
     '''
@@ -256,6 +246,7 @@ class Topology(object):
         '''
         Transforms a pool into a list of ips
         Returns the list
+        Currently not used
         '''
         curr_ip = ip2int(start_ip)
         while(curr_ip <= ip2int(end_ip)) :
@@ -265,8 +256,10 @@ class Topology(object):
             #increment currIp
             curr_ip = curr_ip+1
         
-    
     def pingHost(self, ip_address):
+        '''
+        Currently not used
+        '''
         r = arp() # Builds an "ETH/IP any-to-any ARP packet
         r.opcode = arp.REQUEST
         #r.hwdst = EthAddr("ff:ff:ff:ff:ff:ff")
@@ -286,12 +279,14 @@ class Topology(object):
         if not core.openflow.sendToDPID(dpid, msg.pack()):
             log.debug("%i ERROR sending ARP REQ to %s %s",
                     dpid, str(r.hwdst), str(r.protodst))
+
     '''
     Host related events / methods
     '''
     def makeHostsDiscoverable(self):
         '''
         Pings all the hosts in the pool so that the host_tracker can find them.
+        Currently not used
         '''
         pass
     
@@ -389,7 +384,6 @@ class Topology(object):
             else :
                 log.debug("Trying to add host, but it doesn't connect to any known switch")
 
-        
     def addHostLink(self, host_id, host_port_id, dpid, port):
         '''
         Add the host link 
@@ -411,19 +405,23 @@ class Topology(object):
         
         #start classifying the switches
         self.classifySwitchType(dpid)
-        
-    
+            
     def _handle_HostMove(self, event):
+        '''
+        This should happen when a vm migration occurs
         #TODO: We should do something or not?
         #At least change the host link
+        Update new info (to which dpid it is connected, ...)
+        '''
         pass
     
     def _handle_HostTimeout(self, event):
-        
+        '''
+        TODO: Remove the host from the topology
         #TODO: What should be done?
         #remove the entry from host links and from hosts?
         #Uninstall all the rules?
-        
+        '''
         pass
     
     '''
@@ -472,7 +470,10 @@ class Topology(object):
     
     def _handle_SwitchTimeout(self, event):
         '''
-        TODO: more complex than what you might think at the begining, because every port of a switch should be checked, no?
+        TODO: Remove the switch form the topology
+        TODO: Remove all the links that belong to it
+        TODO: Raise a warning message
+              Rules automatically takes care of the rest (Finding alternative paths and installing rules)
         '''
         pass
     
@@ -503,7 +504,8 @@ class Topology(object):
                           event.link.dpid1, event.link.port1, event.link.dpid2, event.link.port2)
         #link timeout
         else :
-            log.debug("Link removed")
+            #TODO: Check if link still exists in topology and if so, remove it from topology
+            log.warning("Link removed")
     
     def _handle_PortStatus (self, event):
         '''
@@ -598,7 +600,6 @@ class Topology(object):
                 fm.actions.append(of.ofp_action_output(port=of.OFPP_FLOOD))
                 switch.connection.send(fm)
             self.ARPRULESINSTALLED == True
-
 
     def allHostsDiscovered(self):
         '''

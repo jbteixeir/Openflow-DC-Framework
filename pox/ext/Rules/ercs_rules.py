@@ -59,11 +59,9 @@ class Rules(object):
     ercs_topology - instance of ERCSTopology.ercs_topology
     '''
     
-    SUPERNET_OFF = 0
-    SUPERNET_ON = 1
-    
+    SUPERNET = 0
+    supernetting = SUPERNET
     host_rules = {}
-    supernetting = SUPERNET_OFF
     
     def __init__(self, host_rules, supernetting, ercs_topology):
         self.host_rules = host_rules
@@ -146,7 +144,7 @@ class Rules(object):
         #store the rules
         switch_rules = HostRules.HostRuleForSwitch(in_msg, out_msg)
         try:        
-            #install the rules i the switch
+            #install the rules in the switch
             if self.ercs_topology.switches.has_key(switch_id):
                 #print self.ercs_topology.switches[switch_id].connection
                 self.ercs_topology.switches[switch_id].connection.send(in_msg)
@@ -159,19 +157,54 @@ class Rules(object):
             print e
         return switch_rules
 
+    def deleteHostRule(self, host_ip):
+        """
+        TODO: Delete a host rule
+        TODO: Watch out for supernetting
+        """
+        pass
+
+    '''
+    Rules between VM's
+    '''
+    def installInterVMRule(self, vm1_ip, vm2_ip):
+        """
+        TODO: install a rule between two VMs so they can communicate inside de DC
+        """
+        pass
+
+    def deleteInterVMRule(self, vm1_ip, vm2_ip):
+        """
+        TODO: delete a rule between two VMs
+        """
+        pass
+
     '''
     Handle Switch/Link fail
     '''
     def _handle_LinkEvent(self, event):
         """
-        TODO: Raised when a link goes down. Checks which rules are affected and installs alternative routes
-        TODO: Change name to listen to proper events, also add listener on init
+        TODO: Raised when a link goes down. Checks which rules are affected,
+              installs alternative routes and delete the old ones
         """
         pass
 
     def _handle_SwitchTimeout(self, event):
         """
-        TODO: Raised when a switch goes down. Checks which rules are affected and installs alternative routes
-        TODO: Change name to listen to proper events, also add listener on init
+        TODO: Raised when a switch goes down. Checks which rules are affected,
+              installs alternative rules and delete the old ones
         """
+
+        pass
+
+    def checkAffectedRules(self, event):
+        """
+        TODO: Check which rules are affected by the link or switch and install alternative path if possible
+                If not possible, raise a warning.
+        TODO: Watch out for supernetting rules
+        TODO: Watch out for interVMRules
+        """
+        pass
+
+    def installAlternativeRules(self, event):
         pass
