@@ -65,6 +65,9 @@ class VMManager(object):
     
     TODO: Later on the algorithms, instead of simply returning false in case of failure
         return also the reason for this failure
+
+    TODO: Change to instead of having methods to install rules, simply raise an event of vm allocated
+    and also vm removed
     '''
     
     #Types of policies
@@ -1303,7 +1306,7 @@ class VMManager(object):
         except Exception, e:
             print "Exception in isNonSuitablePort"
             print e
-    
+
     def getLink(self, policy_type, dpid, network_margin):
         '''
         Gets a link according to the policy type specified
@@ -1323,7 +1326,7 @@ class VMManager(object):
         else :
             log.debug("DPID = %s, Port = %s - Getting Candidate Port... DONE", dpid, port)
             return port[1]
-        
+
     def getRelevantPorts(self, dpid):
         '''
         Get a list of ports that matter to this DPID
@@ -1393,7 +1396,7 @@ class VMManager(object):
         except Exception, e:
             print "Exception in getRelevantPorts"
             print e
-            
+
     def firstFitLink(self, dpid, network_margin):
         '''
         Gets the first link that fits
@@ -1413,7 +1416,7 @@ class VMManager(object):
                     return (dpid, port_id)
         
         return None
-    
+
     def bestFitLink(self, dpid, network_margin):
         '''
         Gets the best link that fits
@@ -1446,7 +1449,7 @@ class VMManager(object):
         except Exception, e:
             print "Exception in bestFitLink"
             print e
-        
+
     def worstFitLink(self, dpid, network_margin):
         '''
         Gets the worst link that fits
