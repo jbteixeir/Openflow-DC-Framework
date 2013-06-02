@@ -307,6 +307,7 @@ class VMManager(object):
             log.info("CPU = %s, RAM = %s, DISK = %s, Host IP = %s - VM Successfully allocated", event.cpu, event.ram, event.disk, vm_allocation_result)
             self.vmreceiver.notifyVMAllocation(vm_allocation_result, (event.cpu, event.ram, event.disk))
         '''
+
     '''
     Algorithms
     '''
@@ -431,9 +432,10 @@ class VMManager(object):
         # add to the allocated list
         self.vms_allocated[self.host_candidate].append(requirements)
         # set holding time
+        #TODO: Allow to update the holding_time
         holding_time = requirements[4]
         threading.Timer(holding_time, self.removeVMAllocation, [self.host_candidate, requirements]).start()
-        
+
         #install the rules
         self.installVMRules()
         
@@ -450,9 +452,7 @@ class VMManager(object):
         #del(self.vms_requests[0])
         
         return host_ip
-    
-    
-            
+     
     def serverDrivenAlgorithm(self, vm_id, requirements):
         '''
         Runs the Server Driven Algorithm for VirtualMachine Placement
@@ -587,6 +587,7 @@ class VMManager(object):
         # add to the allocated list
         self.vms_allocated[self.host_candidate].append(requirements)
         # set holding time
+        #TODO: Allow to update the holding_time
         holding_time = nextTime(1/self.host_holding_time)
         threading.Timer(holding_time, self.removeVMAllocation, [self.host_candidate, requirements]).start()
         
@@ -630,7 +631,7 @@ class VMManager(object):
         edge_port_out = self.topology.switch_links[self.agg_candidate][self.agg_port_candidate][1]
         
         #install the rules for the newly allocated host
-        self.rules.installAllHostRules(self.host_candidate, host_ip, self.core_candidate, self.core_port_candidate, core_port_out, self.agg_candidate, 
+        self.rules.installHostRules(self.host_candidate, host_ip, self.core_candidate, self.core_port_candidate, core_port_out, self.agg_candidate, 
                          self.agg_port_candidate, agg_port_out, self.edge_candidate, self.edge_port_candidate, edge_port_out, self.request_type)
             
         log.debug("Installing nem VM Rules... DONE")
@@ -767,6 +768,7 @@ class VMManager(object):
         log.debug("HostID = %s - EnoughRes = %s - Checking if host has enough resources... DONE", host_id, enough_Res)
         
         return enough_Res
+
     '''
     Host Policies
     '''
@@ -890,7 +892,6 @@ class VMManager(object):
     '''
     Switch Related Methods
     '''
-    
     def getSwitch(self, switch_type, policy_type, network_margin):
         '''
         Gets a switch based on the policy_type specified
@@ -1156,7 +1157,6 @@ class VMManager(object):
             print "Exception in getSwitchRatio"
             print e
 
-
     def getSwitchRatioWithSafeMargin(self, dpid, network_margin):
         '''
         Return the Ratio of the switch with this dpid
@@ -1270,7 +1270,6 @@ class VMManager(object):
         except Exception, e:
             print "Exception in getSwitchRatioWithMargin"
             print e
-
     
     '''
     Link Related Methods
@@ -1667,7 +1666,6 @@ class VMManager(object):
                 dpid, port_id, link_ratio, bit_rate[port_id], network_margin, link_capacity)
             
             return link_ratio
-
 
     def linkHasEnoughResources(self, dpid, port):
         '''

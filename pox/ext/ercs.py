@@ -16,7 +16,7 @@ ERCS Rules
     All the rules are saved for future usage, and can be accessed through the right variables.
     Supernetting for aggregation and core switch's is available (although not right now) 
         -when instanciating simply put Rules.SUPERNET_ON option.
-    TO install the rules for one host simply call rules.installAllHostRules(...)
+    TO install the rules for one host simply call rules.installHostRules(...)
     TODO: Supernetting to Agg and Core switches
     For more information check the class ercs_rules. In there you can see what kind of data structures were used.
     
@@ -91,7 +91,7 @@ class ERCS():
         #TODO: Automatically adapt the rules in case a switch fails
         #TODO: Supernetting in the agg and core switches
         log.info("ERCS Rules - Initializing...")
-        self.rules = Rules({}, Rules.SUPERNET_OFF, self.topology)
+        self.rules = Rules({}, {}, Rules.SUPERNET, self.topology)
         log.info("ERCS Rules - Ready")
         
         #Start the ERCS VM Request Receiver
