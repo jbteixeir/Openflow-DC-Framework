@@ -41,8 +41,7 @@ ERCS Host
     For more information please check ercs_host
 
 ERCS Port
-    Class where all the information about a host is kept. This includes id, mac_address, ip_addresses(list of ip addresses 
-    because of virtual interfaces)
+    Class where all the information about a host is kept. This includes id, mac_address, ip_address
     Class used by ERCS Switch and ERCS Host
     For more information please check ercs_port
     
@@ -57,8 +56,8 @@ from ext.Stats.ercs_stats_export import ERCSStatsExport
 from ext.Topology.ercs_topology import Topology
 from ext.Rules.ercs_rules import Rules
 from pox.core import core
-from ext.VM.vm_request_handler import VMReceiver
-from ext.VM.vm_manager import VMManager
+from ext.VM.vm_request_manager import VMReceiver
+from ext.VM.vm_allocation_manager import VMManager
 from ext.Topology import ercs_topology
 from ext.INIHandler.INIHandler import IniHandler
 from ext.XenCommunicator.xen_communicator import XenCommunicator

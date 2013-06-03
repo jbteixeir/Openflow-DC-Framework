@@ -443,7 +443,7 @@ class VMManager(object):
         self.installVMRules()
         
         #notify the VM Requester
-        host_ip = self.topology.hosts[self.host_candidate].ports[self.topology.hosts[self.host_candidate].ports.keys()[0]].ip_addresses[0]
+        host_ip = self.topology.hosts[self.host_candidate].ports[self.topology.hosts[self.host_candidate].ports.keys()[0]].ip_address
 
         self.vmreceiver.notifyVMAllocation(vm_id, requirements, holding_time, host_ip, self.core_candidate, 
             self.agg_candidate, self.edge_candidate, self.topology.out_hosts[self.core_candidate][self.topology.out_hosts[self.core_candidate].keys()[0]][0][1])
@@ -598,7 +598,7 @@ class VMManager(object):
         self.installVMRules()
         
         #notify the VM Requester
-        host_ip = self.topology.hosts[self.host_candidate].ports[self.topology.hosts[self.host_candidate].ports.keys()[0]].ip_addresses[0]
+        host_ip = self.topology.hosts[self.host_candidate].ports[self.topology.hosts[self.host_candidate].ports.keys()[0]].ip_address
         self.vmreceiver.notifyVMAllocation(vm_id, requirements, holding_time, host_ip, self.core_candidate, 
             self.agg_candidate, self.edge_candidate, self.topology.out_hosts[self.core_candidate][self.topology.out_hosts[self.core_candidate].keys()[0]][0][1])
         
@@ -617,7 +617,7 @@ class VMManager(object):
         
         log.debug("Installing new VM Rules...")
         
-        host_ip = self.topology.hosts[self.host_candidate].ports[self.topology.hosts[self.host_candidate].ports.keys()[0]].ip_addresses[0]
+        host_ip = self.topology.hosts[self.host_candidate].ports[self.topology.hosts[self.host_candidate].ports.keys()[0]].ip_address
         
         
         if self.topology.out_hosts.has_key(self.core_candidate):
@@ -638,6 +638,22 @@ class VMManager(object):
                          self.agg_port_candidate, agg_port_out, self.edge_candidate, self.edge_port_candidate, edge_port_out, self.request_type)
             
         log.debug("Installing nem VM Rules... DONE")
+
+    def interVMPathAlgorithm(self, vm_ip_list):
+        """
+        Calculate a path for interconnecting vitual machines
+        @param vm_ip_list List of virtualmachines to interconnect (should have at least 2)
+        """
+        for vm1_ip in vm_ip_list:
+            for vm2_ip in vm_ip_list:
+                if vm1_ip != vm2_ip:
+                    #check to which edge switches they are connected
+                    #get one of the connected switches
+                    #edge_switch1 = self.topology.host_links
+                    #Calculate the shortest path
+                    #install the rules
+                    pass
+        pass
 
     def cleanVariables(self):
         '''

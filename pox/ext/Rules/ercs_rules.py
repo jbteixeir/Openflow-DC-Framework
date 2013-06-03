@@ -22,7 +22,6 @@ class SwitchRule(object):
         """
         self.rule = rule
         self.dpid = dpid
-        self.inport = inport
         self.outport = outport
         self.srcip = srcip
         self.dstip = dstip        
@@ -97,17 +96,17 @@ class Rules(object):
             #     return
             
             #store all of the rules in the dictionary
-            if (!isset(self.vm_rules[host_id]))
+            if not self.vm_rules.has_key(host_id):
                 self.vm_rules[host_id] = list()
 
-            self.vm_rules[host_id] = list.append(SwitchRule(in_edge_rule, edge_id, edge_port_in, host_ip))
-            self.vm_rules[host_id] = list.append(SwitchRule(out_edge_rule, edge_id, edge_port_out, host_ip))
+            self.vm_rules[host_id].append(SwitchRule(in_edge_rule, edge_id, edge_port_in, host_ip))
+            self.vm_rules[host_id].append(SwitchRule(out_edge_rule, edge_id, edge_port_out, host_ip))
 
-            self.vm_rules[host_id] = list.append(SwitchRule(in_agg_rule, core_id, agg_port_in, host_ip))
-            self.vm_rules[host_id] = list.append(SwitchRule(out_agg_rule, core_id, agg_port_out, host_ip))
+            self.vm_rules[host_id].append(SwitchRule(in_agg_rule, core_id, agg_port_in, host_ip))
+            self.vm_rules[host_id].append(SwitchRule(out_agg_rule, core_id, agg_port_out, host_ip))
 
-            self.vm_rules[host_id] = list.append(SwitchRule(in_core_rule, edge_id, core_port_in, host_ip))
-            self.vm_rules[host_id] = list.append(SwitchRule(out_core_rule, edge_id, core_port_out, host_ip))
+            self.vm_rules[host_id].append(SwitchRule(in_core_rule, edge_id, core_port_in, host_ip))
+            self.vm_rules[host_id].append(SwitchRule(out_core_rule, edge_id, core_port_out, host_ip))
         
         log.info("Installing all rules for each switch type... Done")
             
@@ -211,16 +210,16 @@ class Rules(object):
                 print e
             
             #Initialize inter_vm_rules if necessary
-            if(!self.inter_vm_rules.has_key(vm1_ip)):
+            if(not self.inter_vm_rules.has_key(vm1_ip)):
                 self.inter_vm_rules[vm1_ip] = {}
                 self.inter_vm_rules[vm1_ip][vm2_ip] = list()
-            elif(!self.inter_vm_rules[vm1_ip].has_key(vm2_ip)):
+            elif(not self.inter_vm_rules[vm1_ip].has_key(vm2_ip)):
                 self.inter_vm_rules[vm1_ip][vm2_ip] = list()
 
-            if(!self.inter_vm_rules.has_key(vm2_ip)):
+            if(not self.inter_vm_rules.has_key(vm2_ip)):
                 self.inter_vm_rules[vm2_ip] = {}
                 self.inter_vm_rules[vm2_ip][vm1_ip] = list()
-            elif(!self.inter_vm_rules[vm2_ip].has_key(vm1_ip)):
+            elif(not self.inter_vm_rules[vm2_ip].has_key(vm1_ip)):
                 self.inter_vm_rules[vm2_ip][vm1_ip] = list()
 
             #Save the rules

@@ -25,22 +25,21 @@ class Host(object):
         
         self.hardware = (cpu, ram, disk)
     
-    def addPort(self, port_mac_address, port_ip_addresses):
+    def addPort(self, port_mac_address, port_ip_address):
         '''
         '''
         #check if a port with this mac address hasn't been added
         if port_mac_address not in self.ports.keys() :
             port_id = len(self.ports)+1
-            self.ports[port_mac_address] = Port(port_id, port_mac_address, port_ip_addresses)
+            self.ports[port_mac_address] = Port(port_id, port_mac_address, port_ip_address)
             log.debug("Mac Address = %s - New Port added", self.ports[port_mac_address].mac_address)
-        #check if (in case of already having this port) has new ipaddresses
+        #check if (in case of already having this port) has new ipaddress
         else :
             log.debug("Adding port to host but Port Already exists")
-            #for all Ip Addresses in port_ip_addresses
-            for ip_address in port_ip_addresses :
-                #add this Ip Address (verificaitions done by the function addIpAdressToPort
-                self.ports[port_mac_address].addIpAddressToPort(port_mac_address,ip_address)
-                log.debug("Mac Address = %s , Ip Address = %s - Adding new Ip Address to port", port_mac_address, ip_address)
+            #for all Ip Addresses in port_ip_address
+            #add this Ip Address (verificaitions done by the function addIpAdressToPort
+            self.ports[port_mac_address].addIpAddressToPort(port_mac_address,port_ip_address)
+            log.debug("Mac Address = %s , Ip Address = %s - Adding new Ip Address to port", port_mac_address, ip_address)
                     
     def addIpAddressToPort(self, port_mac_address, ip_address):
         '''

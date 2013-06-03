@@ -298,20 +298,20 @@ class Topology(object):
             if host_id == None :
                 #add new host
                 new_host_id = self.addHost({})
-                self.hosts[new_host_id].addPort(event.host_mac_address, [event.host_ip_address])
+                self.hosts[new_host_id].addPort(event.host_mac_address, event.host_ip_address)
                 log.debug("HostId = %s - New Host Added", new_host_id)
             #if host exists
             else :
                 #Check if host already has this port
                 if event.host_mac_address in self.hosts[host_id].ports.keys() :
                     #check if this port doesn't have the ip address
-                    if event.host_ip_address not in self.hosts[host_id].ports[event.host_mac_address].ip_addresses :
+                    if event.host_ip_address != self.hosts[host_id].ports[event.host_mac_address].ip_address :
                         self.hosts[host_id].ports[event.host_mac_address].ip_addresses.append(event.host_ip_address)
                         log.debug("HostId = %s, PortId = %s, IpAddress %s - New Ip Address Added to Host", 
                                   new_host_id,self.hosts[host_id].ports[event.host_mac_address].id, event.host_ip_address)
                 else :
                     #add port with ip address to the host
-                    self.hosts[host_id].addPort( event.host_mac_address, [event.host_ip_address])
+                    self.hosts[host_id].addPort( event.host_mac_address, event.host_ip_address)
                     log.debug("HostId = %s, PortId = %s, IpAddress %s - New Port & Ip Address Added to Host", 
                                   new_host_id,self.hosts[host_id].ports[event.host_mac_address].id, event.host_ip_address)
             
