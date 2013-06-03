@@ -24,7 +24,7 @@ class SwitchRule(object):
         self.dpid = dpid
         self.outport = outport
         self.srcip = srcip
-        self.dstip = dstip        
+        self.dstip = dstip
 
 class Rules(object):
     '''
@@ -164,11 +164,22 @@ class Rules(object):
 
     def deleteHostRules(self, host_ip):
         """
-        TODO: Delete a host rule
+        Delete a host rule
+        TODO: Teste it! Check if it works
         """
-        del(self.vm_rules[host_id])
+        #Delete rule form switches
+        for switch_rule in self.vm_rules[host_id]:
+            #create the delete flow message
+            del_msg = of.ofp_flow_mod(command=of.OFPFC_DELETE)
+            del_msg.match.dl_type = switch_rule.match.dl_type
+            del_msg.match.nw_dst = switch_rule.match.nw_dst
+            del_msg.match.nw_src = switch_rule.match.nw_src
 
-        #TODO: Delete rule form switches
+            #send the delete flow message
+            self.topology.switches[switch_rule.dpid].connection.send(del_msg)
+
+        #delete object
+        del(self.vm_rules[host_id])
 
     '''
     Rules between VMs
@@ -231,13 +242,22 @@ class Rules(object):
     def deleteInterVMRule(self, vm1_ip, vm2_ip):
         """
         Delete a rule between two VMs
+        TODO: Test it! Check if it actually deletes
         """
+        #Delete rule form switches
+        for switch_rule in self.inter_vm_rules[vm1_ip][vm2_ip]+self.inter_vm_rules[vm2_ip][vm1_ip]:
+            #create the delete flow message
+            del_msg = of.ofp_flow_mod(command=of.OFPFC_DELETE)
+            del_msg.match.dl_type = switch_rule.match.dl_type
+            del_msg.match.nw_dst = switch_rule.match.nw_dst
+            del_msg.match.nw_src = switch_rule.match.nw_src
+
+            #send the delete flow message
+            self.topology.switches[switch_rule.dpid].connection.send(del_msg)
+
+        #delete rules from object
         del(self.inter_vm_rules[vm2_ip][vm1_ip])
         del(self.inter_vm_rules[vm1_ip][vm2_ip])
-
-        #TODO: Delete rules from switches
-
-        pass
 
     '''
     Handle Switch/Link fail
