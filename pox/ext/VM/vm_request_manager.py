@@ -95,8 +95,6 @@ class VMReceiver (EventMixin, threading.Thread):
         #Start thread that accepts connections and handles the VM Requests
         thread.start_new_thread(self.connectToRequester, ())
         
-        #Start the thread that notifies the VM Requester when the VM was allocated 
-        
     def notifyVMAllocation(self, vm_id, new_vm_caract, holding_time = None, new_vm_ip = None, core_candidate = None, 
             agg_candidate = None, edge_candidate = None, ouside_host_ip = None):
 
