@@ -13,7 +13,7 @@ log = core.getLogger()
 
 class VMRequest (Event) :
     '''
-    TODO: maybe in the future include IO
+    Event with new virtual machine allocation request
     '''
     def __init__ (self, vm_id, time, cpu, ram, disk, network, request_type, timeout) :
         Event.__init__(self)
@@ -26,6 +26,13 @@ class VMRequest (Event) :
         self.request_type = request_type
         self.timeout = timeout
 
+class InterVMComRequest (Event):
+    """
+    Event with the inter virtual machine communication request
+    """
+    def __init__(self, vm_list):
+        Event.__init__(self)
+        self.vm_list = vm_list
 
 class VMReceiver (EventMixin, threading.Thread):
     '''
@@ -41,6 +48,7 @@ class VMReceiver (EventMixin, threading.Thread):
     '''
     _eventMixin_events = set([
                           VMRequest,
+                          InterVMComRequest,
                           ])
     
     def __init__(self, inithandler=None):
@@ -177,23 +185,32 @@ class VMReceiver (EventMixin, threading.Thread):
                     log.info("IP = %s, Port = %s - VM Requester Disconnected ", clientaddr[0] ,clientaddr[1])
                     break
                 try :
-                    # (cpu, ram, disk, network, request_type, timeout) = pickle.loads(data)
-                    [cpu, ram, disk, network, request_type, timeout] = data.split("/",6)
-                    [cpu, ram, disk, network, request_type, timeout] = [int(cpu), int(ram), int(disk), int(network), int(request_type), int(timeout)]
+                    #two types of requests (new vm request / interconnect vms)
+                    #later should probably use some xml protocol or something
+                    [request_type, subdata] = data.split("/",2)
+                    #new vm request arrived
+                    if subdata == 1:
+                        [cpu, ram, disk, network, request_type, timeout] = subdata.split("/",6)
+                        [cpu, ram, disk, network, request_type, timeout] = [int(cpu), int(ram), int(disk), int(network), int(request_type), int(timeout)]
+
+                        #Should use some locking mechanism, to prevent different threads from incrementing at the same time
+                        self.vm_counter +=1
+                        vm_id = self.vm_counter
+                        log.debug("ID = %s, CPU = %s, RAM = %s, Disk = %s, Network = %s, Request Type = %s, Timeout = %s - New VM Request received", vm_id, cpu, ram, disk, network, request_type, timeout)
+                        log.info("New Virtual Machine Request Received")
+                        self.vm_sockets[vm_id] = clientsocket
+                        self.raiseEvent(VMRequest, vm_id, time.time(), cpu, ram, disk, network, request_type, timeout)
+                    #new intervm connection request arrived
+                    else:
+                        vm_list = subdata.split("/", request_type)
+                        log.debug("#VMs = %s - New Inter VM Communication Request Received", request_type)
+                        log.info("New Inter VM Communication Request Received")
+                        self.raiseEvent(InterVMComRequest, vm_list)
+
                 except Exception, e:
                     log.warning("Corrupted Request Received")
                     print e
                     break
-                try :
-                    #Should use some locking mechanism, to prevent different threads from incrementing at the same time
-                    self.vm_counter +=1
-                    vm_id = self.vm_counter
-                    log.debug("ID = %s, CPU = %s, RAM = %s, Disk = %s, Network = %s, Request Type = %s, Timeout = %s - New VM Request received", vm_id, cpu, ram, disk, network, request_type, timeout)
-                    log.info("New Virtual Machine Request Received")
-                    self.vm_sockets[vm_id] = clientsocket
-                    self.raiseEvent(VMRequest, vm_id, time.time(), cpu, ram, disk, network, request_type, timeout)
-                except Exception, e:
-                    print e
                 '''
                 try :
                     #TODO: For now just so we know how to send back things               

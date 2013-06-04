@@ -100,7 +100,7 @@ def startVMRequester ():
                     final_request_type = usr_type + 1
 
             #tcpsoc.sendall(pickle.dumps([cpu, ram, disk, network, final_request_type, tmp_avg_timeout]))
-            tcpsoc.sendall(str(cpu)+"/"+str(ram)+"/"+str(disk)+"/"+str(network)+"/"+str(final_request_type)+"/"+str(tmp_avg_timeout))
+            tcpsoc.sendall(str(1)+"/"+str(cpu)+"/"+str(ram)+"/"+str(disk)+"/"+str(network)+"/"+str(final_request_type)+"/"+str(tmp_avg_timeout))
             print "Request Sent - CPU = ", cpu, ", RAM = ", ram, ", DISK = ", disk, ", Network = ", network, ", Request Type = ", final_request_type, "Timeout = ", tmp_avg_timeout
 
             print "Time since last request - ", int((time.time() - timer)), " sec\n"

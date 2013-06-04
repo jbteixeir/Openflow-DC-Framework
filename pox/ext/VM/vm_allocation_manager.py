@@ -287,10 +287,13 @@ class VMManager(object):
             while (not self.topology.is_number(self.max_bw_link_ratio)) :
                 if self.max_bw_link_ratio < 0 or self.max_bw_link_ratio < 1:
                     self.max_bw_link_ratio = raw_input("This is not a valid number, please insert a valid value: ")
-                    
+    
+    '''
+    Event Handlers
+    '''                
     def _handle_VMRequest(self, event):
         '''
-        Method handling the requests
+        Method handling the virtual machine\ requests
         '''
         log.info("Request ID = %s, Request Type = %s, CPU = %s, RAM = %s, DISK = %s, NETWORK = %s, TIMEOUT = %s - New VM Request Arrived", event.vm_id, event.request_type, event.cpu, event.ram, event.disk, event.network, event.timeout)
         
@@ -310,6 +313,12 @@ class VMManager(object):
             log.info("CPU = %s, RAM = %s, DISK = %s, Host IP = %s - VM Successfully allocated", event.cpu, event.ram, event.disk, vm_allocation_result)
             self.vmreceiver.notifyVMAllocation(vm_allocation_result, (event.cpu, event.ram, event.disk))
         '''
+
+    def _handle_InterVMComRequest(self, event):
+        """
+        Handle inter virtual machine communication
+        """
+        interVMPathAlgorithm(event.vm_list)
 
     '''
     Algorithms
@@ -644,6 +653,10 @@ class VMManager(object):
         Calculate a path for interconnecting vitual machines
         @param vm_ip_list List of virtualmachines to interconnect (should have at least 2)
         """
+        #should have at least 2 IPs
+        if len(vm_ip_list) < 2:
+            return
+
         for vm1_ip in vm_ip_list:
             for vm2_ip in vm_ip_list:
                 if vm1_ip != vm2_ip:

@@ -166,6 +166,7 @@ class Rules(object):
         """
         Delete a host rule
         TODO: Teste it! Check if it works
+        TODO: Some event(vm expire or something) should call this function no?
         """
         #Delete rule form switches
         for switch_rule in self.vm_rules[host_id]:
@@ -243,6 +244,7 @@ class Rules(object):
         """
         Delete a rule between two VMs
         TODO: Test it! Check if it actually deletes
+        TODO: Some event(vm expire or something) should call this function no?
         """
         #Delete rule form switches
         for switch_rule in self.inter_vm_rules[vm1_ip][vm2_ip]+self.inter_vm_rules[vm2_ip][vm1_ip]:
