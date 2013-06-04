@@ -3,7 +3,7 @@ from pox.core import core
 from ext.VM.vm_request_manager import VMReceiver
 from ext.Structures.ercs_switch import Switch
 from pox.lib.recoco.recoco import Timer
-#from ext.Tools.Dijktra import Dijkstra
+from ext.Tools.Dijkstra.Dijkstra import shortestPath
 
 import os
 import threading
