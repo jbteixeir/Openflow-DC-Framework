@@ -424,6 +424,12 @@ class Topology(object):
         '''
         pass
     
+    def getEdgeandportSwitchByHost(self, host_ip):
+        for dpid in self.out_hosts:
+            for port in self.out_hosts[dpid]:
+                if self.out_hosts[dpid][port][1] == host_ip:
+                    return (dpid,port)
+        return None
     '''
     Switch related events / methods
     '''
@@ -656,6 +662,22 @@ class Topology(object):
                                 port_id, "Unknown", "Unknown")
             
         return
+
+    def getPortsBetweenSwitches(self, dpid1, dpid2):
+        """
+        Get the port number for the link between dpid1 and dpid2
+        @param dpid1 Dpid of one of the switches
+        @param dpid2 Dpid of the other switch
+
+        @return Returns a tuple with (port1,port2) in which the ports correspond to each switch, 
+        @return None in case it is not found
+        """
+
+        for port1 in self.switch_links[dpid1]:
+            if self.switch_links[dpid1][port1][0] == dpid2:
+                return (port1,port2)
+        return None
+
         
 def isValidIpPool(ipaddress1, ipaddress2):
     '''

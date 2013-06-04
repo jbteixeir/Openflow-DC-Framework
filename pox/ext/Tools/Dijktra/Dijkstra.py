@@ -14,7 +14,6 @@ def Dijkstra(G,start,end=None):
 		
 		for w in G[v]:
 			vwLength = D[v] + G[v][w]
-			print vwLength
 			if w in D:
 				if vwLength < D[w]:
 					raise ValueError, \
@@ -36,10 +35,6 @@ def shortestPath(G,start,end):
 	Path.reverse()
 	return Path
 
-
-
-G = {'A':{'B':10, 'D':5}, 'B':{'C':1, 'D':2}, 'C':{'E':4}, 'D':{'B':3, 'C':9, 'E':2}, 'E':{'A':7, 'C':6}}
-
-
-
-print shortestPath (G,'A','C')
+#Usage Example
+#G = {'A':{'B':10, 'D':5}, 'B':{'C':1, 'D':2}, 'C':{'E':4}, 'D':{'B':3, 'C':9, 'E':2}, 'E':{'A':7, 'C':6}}
+#print shortestPath (G,'A','C')

@@ -3,6 +3,7 @@ from pox.core import core
 from ext.VM.vm_request_manager import VMReceiver
 from ext.Structures.ercs_switch import Switch
 from pox.lib.recoco.recoco import Timer
+#from ext.Tools.Dijktra import Dijkstra
 
 import os
 import threading
@@ -651,22 +652,58 @@ class VMManager(object):
     def interVMPathAlgorithm(self, vm_ip_list):
         """
         Calculate a path for interconnecting vitual machines
+        TODO: Test this
         @param vm_ip_list List of virtualmachines to interconnect (should have at least 2)
+
         """
         #should have at least 2 IPs
         if len(vm_ip_list) < 2:
             return
 
+        #Change the current link strcuture to fit the dijkstra imported
+        #structure {dpid:{dpid:cost}}
+        new_graph = {}
+        for dpid1 in self.topology.link_list:
+            for port1 in self.topology.link_list[dpid1]:
+                (dpid2, port2) = self.topology.link_list[dpid1][port1]
+                if not new_graph.has_key(dpid1):
+                    new_graph[dpid1] = {}
+                new_graph[dpid1][dpid2] = 0
+
         for vm1_ip in vm_ip_list:
             for vm2_ip in vm_ip_list:
                 if vm1_ip != vm2_ip:
-                    #check to which edge switches they are connected
-                    #get one of the connected switches
-                    #edge_switch1 = self.topology.host_links
+                    #check to which edge switches and ports they are connected
+                    (edge1, port1) = self.topology.getEdgeAndPortSwitchByHost(vm1_ip)
+                    (edge2, port2) = self.topology.getEdgeAndPortSwitchByHost(vm2_ip)
+
                     #Calculate the shortest path
+                    sp = shortestPath(new_graph, edge1, edge2)
+
                     #install the rules
-                    pass
-        pass
+
+                    #Initialize intervmrules list
+                    inter_vm_rules = list()
+                    #Get the port num for each switch link in the
+                    
+                    for num in range(len(sp)):
+                        if num != len(sp):
+                            #get the ports which connect this two switches
+                            (portnum1, portnum2) = self.topology.getPortsBetweenSwitches(sp[num],sp[num+1])
+                            #install a rule in case it the switch connected to the host
+                            if sp[num] == edge1:
+                                inter_vm_rules.append((edge1, port1, portnum1))
+                            if sp[num] == edge2:
+                                inter_vm_rules.append((edge2, portnum1, port2))
+                            if sp[num+1] == edge1:
+                                inter_vm_rules.append((edge1, port1, portnum2))
+                            if sp[num+1] == edge2:
+                                inter_vm_rules.append((edge2, portnum2, port2))
+                            else:
+                                #Install the rule for other switches
+                                intervm_rules.append((sp[num], portnum1, portnum2))
+
+                    self.rules.installInterVMRules(vm1_ip, vm2_ip, inter_vm_rules)
 
     def cleanVariables(self):
         '''
