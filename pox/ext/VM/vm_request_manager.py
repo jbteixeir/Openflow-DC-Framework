@@ -184,13 +184,20 @@ class VMReceiver (EventMixin, threading.Thread):
                 except Exception, e:
                     log.info("IP = %s, Port = %s - VM Requester Disconnected ", clientaddr[0] ,clientaddr[1])
                     break
+                log.info(data)
+                [request_type, subdata] = data.split("/",1)
+                log.info(request_type)
+                log.info(subdata)
                 try :
                     #two types of requests (new vm request / interconnect vms)
                     #later should probably use some xml protocol or something
-                    [request_type, subdata] = data.split("/",2)
+                    
+                    
+                    
+                    
                     #new vm request arrived
-                    if subdata == 1:
-                        [cpu, ram, disk, network, request_type, timeout] = subdata.split("/",6)
+                    if int(request_type) == 1:
+                        [cpu, ram, disk, network, request_type, timeout] = subdata.split("/",5)
                         [cpu, ram, disk, network, request_type, timeout] = [int(cpu), int(ram), int(disk), int(network), int(request_type), int(timeout)]
 
                         #Should use some locking mechanism, to prevent different threads from incrementing at the same time
@@ -202,7 +209,7 @@ class VMReceiver (EventMixin, threading.Thread):
                         self.raiseEvent(VMRequest, vm_id, time.time(), cpu, ram, disk, network, request_type, timeout)
                     #new intervm connection request arrived
                     else:
-                        vm_list = subdata.split("/", request_type)
+                        vm_list = subdata.split("/", int(request_type)-1)
                         log.debug("#VMs = %s - New Inter VM Communication Request Received", request_type)
                         log.info("New Inter VM Communication Request Received")
                         self.raiseEvent(InterVMComRequest, vm_list)

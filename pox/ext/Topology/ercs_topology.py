@@ -306,7 +306,7 @@ class Topology(object):
                 if event.host_mac_address in self.hosts[host_id].ports.keys() :
                     #check if this port doesn't have the ip address
                     if event.host_ip_address != self.hosts[host_id].ports[event.host_mac_address].ip_address :
-                        self.hosts[host_id].ports[event.host_mac_address].ip_addresses.append(event.host_ip_address)
+                        self.hosts[host_id].ports[event.host_mac_address].ip_address = event.host_ip_address
                         log.debug("HostId = %s, PortId = %s, IpAddress %s - New Ip Address Added to Host", 
                                   new_host_id,self.hosts[host_id].ports[event.host_mac_address].id, event.host_ip_address)
                 else :
@@ -414,7 +414,7 @@ class Topology(object):
         Update new info (to which dpid it is connected, ...)
         '''
         pass
-    
+
     def _handle_HostTimeout(self, event):
         '''
         TODO: Remove the host from the topology
@@ -423,13 +423,15 @@ class Topology(object):
         #Uninstall all the rules?
         '''
         pass
-    
-    def getEdgeandportSwitchByHost(self, host_ip):
-        for dpid in self.out_hosts:
-            for port in self.out_hosts[dpid]:
-                if self.out_hosts[dpid][port][1] == host_ip:
-                    return (dpid,port)
+
+    def getEdgeandPortSwitchByHost(self, host_ip):
+        #get host_id
+        for host_id in self.hosts.keys():
+            for port_mac in self.hosts[host_id].ports.keys():
+                if self.hosts[host_id].ports[port_mac].ip_address == host_ip:
+                    return self.host_links[host_id][self.hosts[host_id].ports[port_mac].id]
         return None
+        
     '''
     Switch related events / methods
     '''
