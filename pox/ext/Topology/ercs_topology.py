@@ -432,6 +432,13 @@ class Topology(object):
                     return self.host_links[host_id][self.hosts[host_id].ports[port_mac].id]
         return None
         
+    def getHostMacByIP(self, host_ip):
+        for host_id in self.hosts.keys():
+            for port_mac in self.hosts[host_id].ports.keys():
+                if self.hosts[host_id].ports[port_mac].ip_address == host_ip:
+                    return port_mac
+        return None
+
     '''
     Switch related events / methods
     '''
@@ -674,11 +681,17 @@ class Topology(object):
         @return Returns a tuple with (port1,port2) in which the ports correspond to each switch, 
         @return None in case it is not found
         """
+        port1 = None
+        port2 = None
 
-        for port1 in self.switch_links[dpid1]:
-            if self.switch_links[dpid1][port1][0] == dpid2:
-                return (port1,port2)
-        return (None, None)
+        for port in self.switch_links[dpid1]:
+            if self.switch_links[dpid1][port][0] == dpid2:
+                port1 = port
+
+        for port in self.switch_links[dpid2]:
+            if self.switch_links[dpid2][port][0] == dpid1:
+                port2 = port
+        return (port1, port2)
 
         
 def isValidIpPool(ipaddress1, ipaddress2):

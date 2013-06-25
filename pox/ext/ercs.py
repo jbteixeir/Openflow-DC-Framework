@@ -137,5 +137,7 @@ def launch():
     #pox.misc.arp_responder.launch()
     import pox.host_tracker.host_tracker
     pox.host_tracker.host_tracker.launch()
+    import pox.misc.arp_responder
+    pox.misc.arp_responder.launch()
     
     ERCS()

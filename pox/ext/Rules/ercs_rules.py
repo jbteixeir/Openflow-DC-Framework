@@ -194,7 +194,6 @@ class Rules(object):
         """
         log.debug("%s, %s, %s - Install Inter vm rules...", vm1_ip, vm2_ip,route_port_list)
         for (dpid, port1, port2) in route_port_list:
-        #TODO Install rule for arp requests (so let the packets pass dl_type=0x0806 and match.ar_spa = ip wanted)
 
             log.debug("Dpid = %s - Installing rules for this switch... ", dpid)
             #rule

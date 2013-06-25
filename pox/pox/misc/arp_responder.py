@@ -216,19 +216,19 @@ class ARPResponder (object):
               _failed_queries[a.protodst] = time.time()
 
     # Didn't know how to handle this ARP, so just flood it
-    msg = "%s flooding ARP %s %s => %s" % (dpidToStr(dpid),
-        {arp.REQUEST:"request",arp.REPLY:"reply"}.get(a.opcode,
-        'op:%i' % (a.opcode,)), a.protosrc, a.protodst)
+    # msg = "%s flooding ARP %s %s => %s" % (dpidToStr(dpid),
+    #     {arp.REQUEST:"request",arp.REPLY:"reply"}.get(a.opcode,
+    #     'op:%i' % (a.opcode,)), a.protosrc, a.protodst)
 
-    if squelch:
-      log.debug(msg)
-    else:
-      log.info(msg)
+    # if squelch:
+    #   log.debug(msg)
+    # else:
+    #   log.info(msg)
 
-    msg = of.ofp_packet_out()
-    msg.actions.append(of.ofp_action_output(port = of.OFPP_FLOOD))
-    msg.data = event.ofp
-    event.connection.send(msg.pack())
+    # msg = of.ofp_packet_out()
+    # msg.actions.append(of.ofp_action_output(port = of.OFPP_FLOOD))
+    # msg.data = event.ofp
+    # event.connection.send(msg.pack())
     return EventHalt if _eat_packets else None
 
 

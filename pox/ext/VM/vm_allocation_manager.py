@@ -674,47 +674,58 @@ class VMManager(object):
         for vm1_ip in vm_ip_list:
             tmp_vm_ip_list.remove(vm1_ip)
             for vm2_ip in tmp_vm_ip_list:
+                log.debug("vm1_ip = %s, vm2_ip = %s", vm1_ip, vm2_ip)
                 #check to which edge switches and ports they are connected
                 switch1 = self.topology.getEdgeandPortSwitchByHost(vm1_ip)
                 switch2 = self.topology.getEdgeandPortSwitchByHost(vm2_ip)
+                log.debug("switch1 = %s, switch2 = %s", switch1, switch2)
                 if (switch1 != None) and (switch2 != None):
                     (edge1, port1) = switch1
                     (edge2, port2) = switch2
+
                 else:
                     log.error("Could not find switch connected to vm")
                     return
 
                 #Calculate the shortest path
                 log.debug("E1 = %s, E2 = %s - Calculating the shortest path...", edge1, edge2)
-                sp = shortestPath(new_graph, edge1, edge2)
+                try:
+                    sp = shortestPath(new_graph, edge1, edge2)
+                except Exception, e:
+                    print e
                 log.debug("E1 = %s, E2 = %s - Calculating the shortest path... DONE", edge1, edge2)
 
                 log.debug("SPATH = %s",sp)
                 #Initialize intervmrules list
                 inter_vm_rules = list()
-                #Get the port num for each switch link in the
                 
-                for num in range(len(sp)):
+                #in case the two virtualmachines are in the same server (meaning they are connected to the same edge switch)
+                if (len(sp) == 1):
+                    log.debug("SWITCH = %s - Just one switch connecting both", sp[0])
+                    inter_vm_rules.append((edge1, port1, port2))
+                else:
+                    for num in range(len(sp)):
                         log.debug("SWITCH = %s - going through all switches in the path", sp[num])
-                        #in case the two virtualmachines are in the same server (meaning they are connected to the same edge switch)
-                        if (len(sp) == 1):
-                            inter_vm_rules.append((edge1, port1, port2))
-                        else:
-                            #get the ports which connect this two switches
-                            (portnum1, portnum2) = self.topology.getPortsBetweenSwitches(sp[num],sp[num+1])
 
-                            #install a rule in case it the switch connected to the host
-                            if sp[num] == edge1:
-                                inter_vm_rules.append((edge1, port1, portnum1))
-                            if sp[num] == edge2:
-                                inter_vm_rules.append((edge2, portnum1, port2))
-                            if sp[num+1] == edge1:
-                                inter_vm_rules.append((edge1, port1, portnum2))
-                            if sp[num+1] == edge2:
-                                inter_vm_rules.append((edge2, portnum2, port2))
-                            #Add the rule for other switches
-                            else:
-                                inter_vm_rules.append((sp[num], portnum1, portnum2))
+                        #get the ports which connect this two switches
+                        #if it is the first switch on the list
+                        if num == 0:
+                            portnum1 = self.topology.getPortsBetweenSwitches(sp[num],sp[num+1])[0]
+                            log.debug("edge1")
+                            #Add the rule
+                            inter_vm_rules.append((sp[num], port1, portnum1))
+                        #if it is the last switch on the list
+                        elif num == len(sp)-1:
+                            portnum2 = self.topology.getPortsBetweenSwitches(sp[num-1],sp[num])[1]
+                            log.debug("edge2")
+                            #Add the rule
+                            inter_vm_rules.append((sp[num], portnum2, port2))
+                        else:
+                            log.debug("other")
+                            portnum1 = self.topology.getPortsBetweenSwitches(sp[num-1],sp[num])[1]
+                            portnum2 = self.topology.getPortsBetweenSwitches(sp[num],sp[num+1])[0]
+                            #Add the rule for switches which are not edge
+                            inter_vm_rules.append((sp[num], portnum1, portnum2))
 
                 #install the rules
                 self.rules.installInterVMRules(vm1_ip, vm2_ip, inter_vm_rules)
