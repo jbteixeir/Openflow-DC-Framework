@@ -81,14 +81,14 @@ class Rules(object):
         #if supernetting flag is not activated
         else :
             
-            #edge rules
-            (in_edge_rule, out_edge_rule) = self.installHostRuleOnSwitch(host_id, host_ip, edge_id, edge_port_in, edge_port_out, queue_type)
+            # #edge rules
+            # (in_edge_rule, out_edge_rule) = self.installHostRuleOnSwitch(host_id, host_ip, edge_id, edge_port_in, edge_port_out, queue_type)
             
-            #aggregation rules
-            (in_agg_rule, out_agg_rule) = self.installHostRuleOnSwitch(host_id, host_ip, agg_id, agg_port_in, agg_port_out, queue_type)
+            # #aggregation rules
+            # (in_agg_rule, out_agg_rule) = self.installHostRuleOnSwitch(host_id, host_ip, agg_id, agg_port_in, agg_port_out, queue_type)
             
-            #core rules
-            (in_core_rule, out_core_rule) = self.installHostRuleOnSwitch(host_id, host_ip, core_id, core_port_in, core_port_out, queue_type)
+            # #core rules
+            # (in_core_rule, out_core_rule) = self.installHostRuleOnSwitch(host_id, host_ip, core_id, core_port_in, core_port_out, queue_type)
             
             #check if any error occured
             # if (edge_rules == None) or (agg_rules == None) or (core_rules == None) :
@@ -99,14 +99,14 @@ class Rules(object):
             if not self.vm_rules.has_key(host_id):
                 self.vm_rules[host_id] = list()
 
-            self.vm_rules[host_id].append(SwitchRule(in_edge_rule, edge_id, edge_port_in, host_ip))
-            self.vm_rules[host_id].append(SwitchRule(out_edge_rule, edge_id, edge_port_out, host_ip))
+            # self.vm_rules[host_id].append(SwitchRule(in_edge_rule, edge_id, edge_port_in, host_ip))
+            # self.vm_rules[host_id].append(SwitchRule(out_edge_rule, edge_id, edge_port_out, host_ip))
 
-            self.vm_rules[host_id].append(SwitchRule(in_agg_rule, core_id, agg_port_in, host_ip))
-            self.vm_rules[host_id].append(SwitchRule(out_agg_rule, core_id, agg_port_out, host_ip))
+            # self.vm_rules[host_id].append(SwitchRule(in_agg_rule, core_id, agg_port_in, host_ip))
+            # self.vm_rules[host_id].append(SwitchRule(out_agg_rule, core_id, agg_port_out, host_ip))
 
-            self.vm_rules[host_id].append(SwitchRule(in_core_rule, edge_id, core_port_in, host_ip))
-            self.vm_rules[host_id].append(SwitchRule(out_core_rule, edge_id, core_port_out, host_ip))
+            # self.vm_rules[host_id].append(SwitchRule(in_core_rule, edge_id, core_port_in, host_ip))
+            # self.vm_rules[host_id].append(SwitchRule(out_core_rule, edge_id, core_port_out, host_ip))
         
         log.info("Installing all rules for each switch type... Done")
             
@@ -190,9 +190,12 @@ class Rules(object):
         Install rules between two VMs so they can communicate inside de DC
         @param vm1_ip IP Address of one virtual machine
         @param vm2_ip IP Address of the other virtual machine
-        @param route_port_list List of routing decisions (dpid, port1, port2)
+        @param route_port_list List of routing decisions (dpid, port1, port2) (port1 leads to vm1_ip, port2 leads to vm2_ip)
         """
-        for (dpid, port1, port2) in link_list:
+        log.debug("%s, %s, %s - Install Inter vm rules...", vm1_ip, vm2_ip,route_port_list)
+        for (dpid, port1, port2) in route_port_list:
+        #TODO Install rule for arp requests (so let the packets pass dl_type=0x0806 and match.ar_spa = ip wanted)
+
             log.debug("Dpid = %s - Installing rules for this switch... ", dpid)
             #rule
             vm1_rule = openflowlib.ofp_flow_mod()
@@ -205,8 +208,8 @@ class Rules(object):
             vm2_rule = openflowlib.ofp_flow_mod()
             vm2_rule.priority = 32769
             vm2_rule.match.dl_type = 0x800
-            vm2_rule.match.nw_src = vm1_ip
             vm2_rule.match.nw_dst = vm2_ip
+            vm2_rule.match.nw_src = vm1_ip
             vm2_rule.actions.append(openflowlib.ofp_action_output(port = port2))
 
             #install the rules in the switch
@@ -239,6 +242,8 @@ class Rules(object):
             self.inter_vm_rules[vm2_ip][vm1_ip].append(SwitchRule(vm2_rule, dpid, port2, vm1_ip, vm2_ip))
             self.inter_vm_rules[vm1_ip][vm2_ip].append(SwitchRule(vm1_rule, dpid, port1, vm2_ip, vm1_ip))
             self.inter_vm_rules[vm1_ip][vm2_ip].append(SwitchRule(vm2_rule, dpid, port2, vm1_ip, vm2_ip))
+
+        log.debug("Install Inter vm rules... DONE")
 
     def deleteInterVMRule(self, vm1_ip, vm2_ip):
         """

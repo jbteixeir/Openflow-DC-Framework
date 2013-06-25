@@ -670,34 +670,39 @@ class VMManager(object):
                     new_graph[dpid1] = {}
                 new_graph[dpid1][dpid2] = 0
 
+        tmp_vm_ip_list = vm_ip_list
         for vm1_ip in vm_ip_list:
-            for vm2_ip in vm_ip_list:
-                if vm1_ip != vm2_ip:
-                    #check to which edge switches and ports they are connected
-                    switch1 = self.topology.getEdgeandPortSwitchByHost(vm1_ip)
-                    switch2 = self.topology.getEdgeandPortSwitchByHost(vm2_ip)
-                    if (switch1 != None) and (switch2 != None):
-                        (edge1, port1) = switch1
-                        (edge2, port2) = switch2
-                    else:
-                        log.error("Could not find switch connected to vm")
-                        return
+            tmp_vm_ip_list.remove(vm1_ip)
+            for vm2_ip in tmp_vm_ip_list:
+                #check to which edge switches and ports they are connected
+                switch1 = self.topology.getEdgeandPortSwitchByHost(vm1_ip)
+                switch2 = self.topology.getEdgeandPortSwitchByHost(vm2_ip)
+                if (switch1 != None) and (switch2 != None):
+                    (edge1, port1) = switch1
+                    (edge2, port2) = switch2
+                else:
+                    log.error("Could not find switch connected to vm")
+                    return
 
-                    #Calculate the shortest path
-                    log.debug("E1 = %s, E2 = %s - Calculating the shortest path...", edge1, edge2)
-                    sp = shortestPath(new_graph, edge1, edge2)
-                    log.debug("E1 = %s, E2 = %s - Calculating the shortest path... DONE", edge1, edge2)
+                #Calculate the shortest path
+                log.debug("E1 = %s, E2 = %s - Calculating the shortest path...", edge1, edge2)
+                sp = shortestPath(new_graph, edge1, edge2)
+                log.debug("E1 = %s, E2 = %s - Calculating the shortest path... DONE", edge1, edge2)
 
-                    log.debug("%s",sp)
-                    log.debug("ahah")
-                    #Initialize intervmrules list
-                    inter_vm_rules = list()
-                    #Get the port num for each switch link in the
-                    
-                    for num in range(len(sp)):
-                        if num != len(sp):
+                log.debug("SPATH = %s",sp)
+                #Initialize intervmrules list
+                inter_vm_rules = list()
+                #Get the port num for each switch link in the
+                
+                for num in range(len(sp)):
+                        log.debug("SWITCH = %s - going through all switches in the path", sp[num])
+                        #in case the two virtualmachines are in the same server (meaning they are connected to the same edge switch)
+                        if (len(sp) == 1):
+                            inter_vm_rules.append((edge1, port1, port2))
+                        else:
                             #get the ports which connect this two switches
                             (portnum1, portnum2) = self.topology.getPortsBetweenSwitches(sp[num],sp[num+1])
+
                             #install a rule in case it the switch connected to the host
                             if sp[num] == edge1:
                                 inter_vm_rules.append((edge1, port1, portnum1))
@@ -707,11 +712,13 @@ class VMManager(object):
                                 inter_vm_rules.append((edge1, port1, portnum2))
                             if sp[num+1] == edge2:
                                 inter_vm_rules.append((edge2, portnum2, port2))
+                            #Add the rule for other switches
                             else:
-                                #Add the rule for other switches
-                                intervm_rules.append((sp[num], portnum1, portnum2))
-                    #install the rules
-                    self.rules.installInterVMRules(vm1_ip, vm2_ip, inter_vm_rules)
+                                inter_vm_rules.append((sp[num], portnum1, portnum2))
+
+                #install the rules
+                self.rules.installInterVMRules(vm1_ip, vm2_ip, inter_vm_rules)
+                
 
     def cleanVariables(self):
         '''

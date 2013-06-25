@@ -678,7 +678,7 @@ class Topology(object):
         for port1 in self.switch_links[dpid1]:
             if self.switch_links[dpid1][port1][0] == dpid2:
                 return (port1,port2)
-        return None
+        return (None, None)
 
         
 def isValidIpPool(ipaddress1, ipaddress2):
