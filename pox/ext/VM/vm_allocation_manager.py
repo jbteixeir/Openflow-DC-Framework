@@ -670,8 +670,10 @@ class VMManager(object):
                     new_graph[dpid1] = {}
                 new_graph[dpid1][dpid2] = 0
 
-        tmp_vm_ip_list = vm_ip_list
+
+        tmp_vm_ip_list = list(vm_ip_list)
         for vm1_ip in vm_ip_list:
+
             tmp_vm_ip_list.remove(vm1_ip)
             for vm2_ip in tmp_vm_ip_list:
                 log.debug("vm1_ip = %s, vm2_ip = %s", vm1_ip, vm2_ip)
