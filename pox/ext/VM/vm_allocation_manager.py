@@ -319,7 +319,16 @@ class VMManager(object):
         """
         Handle inter virtual machine communication
         """
-        self.interVMPathAlgorithm(event.vm_list)
+        if self.interVMPathAlgorithm(event.vm_list)==None:
+            #Notify that something went wrong while interconnecting vm's
+            #most probable there is no possible path between some vm's
+            #or maybe say this when calculating the SP
+            self.vmreceiver.notifyInterVMCommunication(event.inter_vm_id, -1)
+        else:
+            #notify that vm's are now sucefully connected
+            self.vmreceiver.notifyInterVMCommunication(event.inter_vm_id, 1)
+
+        
 
     '''
     Algorithms
@@ -658,7 +667,7 @@ class VMManager(object):
         """
         #should have at least 2 IPs
         if len(vm_ip_list) < 2:
-            return
+            return None
 
         #Change the current link strcuture to fit the dijkstra imported
         #structure {dpid:{dpid:cost}}
@@ -687,43 +696,37 @@ class VMManager(object):
 
                 else:
                     log.error("Could not find switch connected to vm")
-                    return
+                    return None
 
                 #Calculate the shortest path
                 log.debug("E1 = %s, E2 = %s - Calculating the shortest path...", edge1, edge2)
                 try:
                     sp = shortestPath(new_graph, edge1, edge2)
                 except Exception, e:
-                    print e
-                log.debug("E1 = %s, E2 = %s - Calculating the shortest path... DONE", edge1, edge2)
+                    return None
+                log.debug("E1 = %s, E2 = %s, Path = %s - Calculating the shortest path... DONE", edge1, edge2, sp)
 
-                log.debug("SPATH = %s",sp)
                 #Initialize intervmrules list
                 inter_vm_rules = list()
                 
                 #in case the two virtualmachines are in the same server (meaning they are connected to the same edge switch)
                 if (len(sp) == 1):
-                    log.debug("SWITCH = %s - Just one switch connecting both", sp[0])
                     inter_vm_rules.append((edge1, port1, port2))
                 else:
                     for num in range(len(sp)):
-                        log.debug("SWITCH = %s - going through all switches in the path", sp[num])
 
                         #get the ports which connect this two switches
                         #if it is the first switch on the list
                         if num == 0:
                             portnum1 = self.topology.getPortsBetweenSwitches(sp[num],sp[num+1])[0]
-                            log.debug("edge1")
                             #Add the rule
                             inter_vm_rules.append((sp[num], port1, portnum1))
                         #if it is the last switch on the list
                         elif num == len(sp)-1:
                             portnum2 = self.topology.getPortsBetweenSwitches(sp[num-1],sp[num])[1]
-                            log.debug("edge2")
                             #Add the rule
                             inter_vm_rules.append((sp[num], portnum2, port2))
                         else:
-                            log.debug("other")
                             portnum1 = self.topology.getPortsBetweenSwitches(sp[num-1],sp[num])[1]
                             portnum2 = self.topology.getPortsBetweenSwitches(sp[num],sp[num+1])[0]
                             #Add the rule for switches which are not edge
@@ -731,6 +734,8 @@ class VMManager(object):
 
                 #install the rules
                 self.rules.installInterVMRules(vm1_ip, vm2_ip, inter_vm_rules)
+
+                return True
                 
 
     def cleanVariables(self):

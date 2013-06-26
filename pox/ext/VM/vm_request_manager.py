@@ -30,8 +30,9 @@ class InterVMComRequest (Event):
     """
     Event with the inter virtual machine communication request
     """
-    def __init__(self, vm_list):
+    def __init__(self, inter_vm_id, vm_list):
         Event.__init__(self)
+        self.inter_vm_id = inter_vm_id
         self.vm_list = vm_list
 
 class VMReceiver (EventMixin, threading.Thread):
@@ -58,8 +59,10 @@ class VMReceiver (EventMixin, threading.Thread):
         self.port = ""
         self.socket_tp = None
         self.vm_counter = 0
+        self.inter_vm_counter = 0
         self.vm_sockets = {}
-        
+        self.inter_vm_sockets = {}
+
         if inithandler == None :
             self.askForArgs()
         else :
@@ -133,6 +136,20 @@ class VMReceiver (EventMixin, threading.Thread):
         self.notifyTrafficGenerator(new_vm_ip,new_vm_caract[3],holding_time, 
             ouside_host_ip)
         
+    def notifyInterVMCommunication(self, inter_vm_id, state):
+        log.debug("Notifying VM Requester of new inter VM Communication...")
+        if state == -1:
+            data = "FALSE"
+        else:
+            data = "TRUE"
+        try:
+            self.inter_vm_sockets[inter_vm_id].send(data)
+            log.debug("Notifying VM Requester of new inter VM Communication... DONE")
+        except Exception, e:
+            log.debug("Notifying VM Requester of new inter VM Communication... FAIL")
+            log.error("Trying to notify VM Requester of inter VM Communication, but it's disconnected...")            
+        
+
     def notifyTrafficGenerator(self, new_vm_ip, bw, holding_time, outside_host_ip):
         '''
         Connects with ERCSMNGenerator to start generating traffic from hosts
@@ -209,10 +226,13 @@ class VMReceiver (EventMixin, threading.Thread):
                         self.raiseEvent(VMRequest, vm_id, time.time(), cpu, ram, disk, network, request_type, timeout)
                     #new intervm connection request arrived
                     else:
+                        self.inter_vm_counter +=1
+                        inter_vm_id = self.inter_vm_counter
                         vm_list = subdata.split("/", int(request_type)-1)
                         log.debug("#VMs = %s - New Inter VM Communication Request Received", request_type)
                         log.info("New Inter VM Communication Request Received")
-                        self.raiseEvent(InterVMComRequest, vm_list)
+                        self.inter_vm_sockets[inter_vm_id] = clientsocket
+                        self.raiseEvent(InterVMComRequest, inter_vm_id, vm_list)
 
                 except Exception, e:
                     log.warning("Corrupted Request Received")

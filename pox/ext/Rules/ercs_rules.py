@@ -198,14 +198,15 @@ class Rules(object):
             log.debug("Dpid = %s - Installing rules for this switch... ", dpid)
             #rule
             vm1_rule = openflowlib.ofp_flow_mod()
-            vm1_rule.priority = 32769
+            #default priority is 32768 (higher number higher priority)
+            vm1_rule.priority = 32770
             vm1_rule.match.dl_type = 0x800
             vm1_rule.match.nw_dst = vm1_ip
             vm1_rule.match.nw_src = vm2_ip
             vm1_rule.actions.append(openflowlib.ofp_action_output(port = port1))
 
             vm2_rule = openflowlib.ofp_flow_mod()
-            vm2_rule.priority = 32769
+            vm2_rule.priority = 32770
             vm2_rule.match.dl_type = 0x800
             vm2_rule.match.nw_dst = vm2_ip
             vm2_rule.match.nw_src = vm1_ip
