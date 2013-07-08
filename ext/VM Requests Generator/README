@@ -1,0 +1,16 @@
+README VM RAndom Requester
+
+Arguments
+1 - IP of controller
+2 - Port
+3 - Request Rate (time interval between requests)
+4 - Average holding time
+5 - number of types of user
+6+ - Percentage of bandwidth for each user
+
+#currently not working the types of users
+
+Examples:
+sudo python ./vmrequesterpoisson.py 127.0.0.1 3000 10 290 1 1
+
+sudo python ./vmrequesterpoisson.py 127.0.0.1 3000 10 290 2 0.3 0.7
