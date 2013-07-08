@@ -202,50 +202,56 @@ class VMReceiver (EventMixin, threading.Thread):
                     log.info("IP = %s, Port = %s - VM Requester Disconnected ", clientaddr[0] ,clientaddr[1])
                     break
                 log.info(data)
-                [request_type, subdata] = data.split("/",1)
-                log.info(request_type)
-                log.info(subdata)
-                try :
-                    #two types of requests (new vm request / interconnect vms)
-                    #later should probably use some xml protocol or something
+                try:
+                    [request_type, subdata] = data.split("/",1)
                     
-                    
-                    
-                    
-                    #new vm request arrived
-                    if int(request_type) == 1:
-                        [cpu, ram, disk, network, request_type, timeout] = subdata.split("/",5)
-                        [cpu, ram, disk, network, request_type, timeout] = [int(cpu), int(ram), int(disk), int(network), int(request_type), int(timeout)]
 
-                        #Should use some locking mechanism, to prevent different threads from incrementing at the same time
-                        self.vm_counter +=1
-                        vm_id = self.vm_counter
-                        log.debug("ID = %s, CPU = %s, RAM = %s, Disk = %s, Network = %s, Request Type = %s, Timeout = %s - New VM Request received", vm_id, cpu, ram, disk, network, request_type, timeout)
-                        log.info("New Virtual Machine Request Received")
-                        self.vm_sockets[vm_id] = clientsocket
-                        self.raiseEvent(VMRequest, vm_id, time.time(), cpu, ram, disk, network, request_type, timeout)
-                    #new intervm connection request arrived
-                    else:
-                        self.inter_vm_counter +=1
-                        inter_vm_id = self.inter_vm_counter
-                        vm_list = subdata.split("/", int(request_type)-1)
-                        log.debug("#VMs = %s - New Inter VM Communication Request Received", request_type)
-                        log.info("New Inter VM Communication Request Received")
-                        self.inter_vm_sockets[inter_vm_id] = clientsocket
-                        self.raiseEvent(InterVMComRequest, inter_vm_id, vm_list)
+                    log.info(request_type)
+                    log.info(subdata)
+                    try :
+                        #two types of requests (new vm request / interconnect vms)
+                        #later should probably use some xml protocol or something
+                        
+                        
+                        
+                        
+                        #new vm request arrived
+                        if int(request_type) == 1:
+                            [cpu, ram, disk, network, request_type, timeout] = subdata.split("/",5)
+                            [cpu, ram, disk, network, request_type, timeout] = [int(cpu), int(ram), int(disk), int(network), int(request_type), int(timeout)]
 
+                            #Should use some locking mechanism, to prevent different threads from incrementing at the same time
+                            self.vm_counter +=1
+                            vm_id = self.vm_counter
+                            log.debug("ID = %s, CPU = %s, RAM = %s, Disk = %s, Network = %s, Request Type = %s, Timeout = %s - New VM Request received", vm_id, cpu, ram, disk, network, request_type, timeout)
+                            log.info("New Virtual Machine Request Received")
+                            self.vm_sockets[vm_id] = clientsocket
+                            self.raiseEvent(VMRequest, vm_id, time.time(), cpu, ram, disk, network, request_type, timeout)
+                        #new intervm connection request arrived
+                        else:
+                            self.inter_vm_counter +=1
+                            inter_vm_id = self.inter_vm_counter
+                            vm_list = subdata.split("/", int(request_type)-1)
+                            log.debug("#VMs = %s - New Inter VM Communication Request Received", request_type)
+                            log.info("New Inter VM Communication Request Received")
+                            self.inter_vm_sockets[inter_vm_id] = clientsocket
+                            self.raiseEvent(InterVMComRequest, inter_vm_id, vm_list)
+
+                    except Exception, e:
+                        log.warning("Corrupted Request Received")
+                        print e
+                        break
+                    '''
+                    try :
+                        #TODO: For now just so we know how to send back things               
+                        msg = "You sent me: %s" % data
+                        clientsocket.send(msg)
+                    except Exception, e:
+                        pass
+                    '''
                 except Exception, e:
-                    log.warning("Corrupted Request Received")
-                    print e
+                    log.debug("End of request - Webplatform disconnected")
                     break
-                '''
-                try :
-                    #TODO: For now just so we know how to send back things               
-                    msg = "You sent me: %s" % data
-                    clientsocket.send(msg)
-                except Exception, e:
-                    pass
-                '''
         
             clientsocket.close()
 

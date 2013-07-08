@@ -19,11 +19,13 @@ import threading
 import sys
 import os
 
+from netaddr import IPNetwork, IPAddress
 from pox.lib.packet.ethernet import ethernet
 from pox.lib.packet.ipv4 import ipv4
 from pox.lib.packet.arp import arp
 from pox.lib.recoco.recoco import Sleep
 from pox.lib.addresses import IPAddr, EthAddr
+from pprint import pprint
 
 log = core.getLogger()
 
@@ -33,8 +35,8 @@ class Topology(object):
     
     switches - Dict of switches indexed by dpid
     hosts - Dict of hosts indexed by host_id -> (len(self.hosts)+1)
-    switch_links - Dict of switch links indexed by (dpid). 
-                   Each entry gives a dict index by port 
+    switch_links - Dict of switch links indexed by (dpid).
+                   Each entry gives a dict index by port
                    which than gives (dpid, port) which is connected to
                        
     host_links - Dict of host links indexed by (host_id). 
@@ -45,6 +47,9 @@ class Topology(object):
                  Each entry gives a dict index by [port]
                  which than gives (host_mac, host_ip) which is connected to
     
+    hosts_ip_pool - pool of server ip addresses
+
+    out_hosts_ip_pool - pool of gateway ip addresses
      
         
     edge_link_capacity |
@@ -76,6 +81,9 @@ class Topology(object):
         self.switch_links = {}
         self.host_links = {}
         self.out_hosts = {}
+        self.hosts_ip_pool = ""
+        self.out_hosts_ip_pool = ""
+
         
         #Add Listener for openflow, Topology, host_tracker
         core.openflow.addListeners(self)
@@ -196,6 +204,12 @@ class Topology(object):
             
             self.host_hardware = (cpu, ram, disk)
             
+            section = "hostippool"
+            key = "server"
+            self.hosts_ip_pool = str(inithandler.read_ini_value(section, key))
+            key = "gateway"
+            self.out_hosts_ip_pool = str(inithandler.read_ini_value(section, key))
+
             log.debug("Successfully got host values")
             
         except Exception, e :
@@ -212,7 +226,6 @@ class Topology(object):
         self.hosts[new_host_id] = Host(new_host_id, ports, self.host_hardware)
         
         return new_host_id
-        
         
     def getHostIdByMacAddress(self, mac_address):
         '''
@@ -289,9 +302,13 @@ class Topology(object):
         Currently not used
         '''
         pass
-    
+
     def _handle_HostJoin(self, event):
-        if not self.ALLHOSTSDISCOVERED :
+        '''
+        '''
+        #If this ip belong to the server ip pool (hosts)
+        if isIpInNetwork(event.host_ip_address, self.hosts_ip_pool) :
+            #add this host to the host dict
             #Get the host Id by the mac address
             host_id = self.getHostIdByMacAddress(event.host_mac_address)
             #if host doesn't exists yet
@@ -320,69 +337,33 @@ class Topology(object):
                 host_id = self.getHostIdByMacAddress(event.host_mac_address)
                 
             self.addHostLink(host_id, self.hosts[host_id].ports[event.host_mac_address].id, event.dpid, event.port)
-        
-        else :
-            #Some of these might be core output ports. The rest are new hosts
-            if self.switches.has_key(event.dpid):
-                if self.switches[event.dpid].type == Switch.CORE :
-                    if not self.out_hosts.has_key(event.dpid):
-                        self.out_hosts[event.dpid] = {}
-                    if not self.out_hosts[event.dpid].has_key(event.port):
-                        self.out_hosts[event.dpid][event.port] = list()
-                        log.debug("DPID = %s, Port = %s, Mac = %s, IP = %s - A core output port "+
-                            "was found", event.dpid, event.port, event.host_mac_address, event.host_ip_address)
-                    else:
-                        self.out_hosts[event.dpid][event.port] = list()
-                        log.debug("DPID = %s, Port = %s, Mac = %s, IP = %s - The host IP and Mac"+
-                            " core output port was found", event.dpid, event.port, 
-                            event.host_mac_address, event.host_ip_address)
 
-                    self.out_hosts[event.dpid][event.port].append((event.host_mac_address, 
-                        event.host_ip_address))
-                    #for all the core swithes which don't have yet an output host ip and mac, set this one
-                    #This is needed in case a output host is connected do multiple switches
-                    #TODO: doesn't work yet if you have two outside hosts connecting to four different core switches
-                    #for all the output ports previously detected, add the ip and mac of outside host
-                    for dpid in self.out_hosts.keys():
-                        for port in self.out_hosts[dpid].keys():
-                            if [(None, None)] == self.out_hosts[dpid][port]:
-                                self.out_hosts[dpid][port].append((event.host_mac_address, event.host_ip_address))
-                                log.debug("DPID = %s, Port = %s, Mac = %s, IP = %s - The host IP and Mac"+
-                                    " core output port was found", dpid, port, 
-                                    event.host_mac_address, event.host_ip_address)
-                                        
+            #classify the switch which it is connected to as edge
+            if self.switches[event.dpid].type == Switch.UNKNOWN:
+                self.switches[event.dpid].type = Switch.EDGE
+                log.debug("DPID = %s, Switch Type = %s - New Switch Classified", event.dpid, self.switches[event.dpid].type)
 
-                else:
-                    log.debug("DPID = %s, Port = %s - Trying to add host, but all hosts have already been discovered", 
-                              event.dpid, event.port)
-                '''                    
-                #add the rest of the core output ports
-                for dpid in self.switches.keys():
-                    if self.switches[dpid].type == Switch.CORE:
-                        for port_id in self.switches[dpid].ports.keys():
-                            if not self.switch_links[dpid].has_key(port_id):
-                                if not self.out_hosts.has_key(dpid):
-                                    self.out_hosts[dpid] = {}
-                                    if not self.out_hosts[dpid].has_key(port):
-                                        self.out_hosts[dpid][port] = list()
-                                
-                                self.out_hosts[dpid][port_id].append((event.host_mac_address, event.host_ip_address))
-                                log.debug("DPID = %s, Port = %s, Mac = %s, IP = %s - A core output port was found", dpid, 
-                                    port_id, event.host_mac_address, event.host_ip_address)
-                '''
-                #Check if the mac and ip of all outside hosts have been discovered
-                #If so, install arp rules in all switches
-                #doesn't work with fat tree because of the loops
-                miss_host_info = False
-                for out_host in self.out_hosts:
-                    for port in self.out_hosts[out_host]:
-                        if self.out_hosts[out_host][port] == ('Unknown','Unknown') :
-                            miss_host_info = True
-                if miss_host_info == False:
-                    #self.installArpRules()
-                    pass
-            else :
-                log.debug("Trying to add host, but it doesn't connect to any known switch")
+        #If this ip belong to the gateway ip pool (outside hosts)
+        elif isIpInNetwork(event.host_ip_address, self.out_hosts_ip_pool) :
+            #TODO:add this host to the out_host dict
+            if not self.out_hosts.has_key(event.dpid):
+                self.out_hosts[event.dpid] = {}
+                if not self.out_hosts[event.dpid].has_key(event.port):
+                    self.out_hosts[event.dpid][event.port] = list()
+                    log.debug("DPID = %s, Port = %s, Mac = %s, IP = %s - A core output port "+
+                        "was found", event.dpid, event.port, event.host_mac_address, event.host_ip_address)
+            else:
+                self.out_hosts[event.dpid][event.port] = list()
+                log.debug("DPID = %s, Port = %s, Mac = %s, IP = %s - The host IP and Mac"+
+                    " core output port was found", event.dpid, event.port, 
+                    event.host_mac_address, event.host_ip_address)
+
+            self.out_hosts[event.dpid][event.port].append((event.host_mac_address, event.host_ip_address))
+
+            #classify the switch which it is connected to as core
+            if self.switches[event.dpid].type == Switch.UNKNOWN:
+                self.switches[event.dpid].type = Switch.CORE
+                log.debug("DPID = %s, Switch Type = %s - New Switch Classified", event.dpid, self.switches[event.dpid].type)
 
     def addHostLink(self, host_id, host_port_id, dpid, port):
         '''
@@ -402,9 +383,6 @@ class Topology(object):
             self.host_links[host_id][host_port_id] = (dpid, port)
             log.debug("HostId = %s, HostPort = %s, Old_Dpid = %s, Old_Port = %s,"+ 
                       "New_Dpid = %s, New_Port = %s, - Host Link Updated",host_id, host_port_id, old_dpid, old_port, dpid, port)
-        
-        #start classifying the switches
-        self.classifySwitchType(dpid)
             
     def _handle_HostMove(self, event):
         '''
@@ -547,36 +525,6 @@ class Topology(object):
             elif event.modified :
                 log.debug("Dpid =  %s, Port_No = %s, Mac = %s - Port Definitions changed (Reason= Admin Down/Up, Ip Change, ...)", 
                           event.dpid, event.ofp.desc.port_no, event.ofp.desc.hw_addr)
-    
-    def classifySwitchType(self, edgedpid):
-        '''
-        Classifies the switch's based on being connected to host.
-        Relations
-            -Directly connected to host - Edge switch
-            -Shares a Switch_link with a Edge Swith - Aggregation Switch
-            -After all this to have been identified, the rest are core switches
-        '''
-        #set this switch type
-        if self.switches[edgedpid].type == Switch.UNKNOWN :
-            self.switches[edgedpid].type = Switch.EDGE
-            log.debug("DPID = %s, Switch Type = %s - New Switch Classified", edgedpid, self.switches[edgedpid].type)
-        
-        #Find switches which share a switch link with this one
-        if self.switch_links.has_key(edgedpid) :
-            for port in self.switch_links[edgedpid].keys() :
-                (dpid2, port2) = self.switch_links[edgedpid][port]
-    
-                if self.switches[dpid2].type == Switch.UNKNOWN :
-                    #set the switch type to Aggregation
-                    self.switches[dpid2].type = Switch.AGGREGATION
-                    log.debug("DPID = %s, Switch Type = %s - New Switch Classified", dpid2, self.switches[dpid2].type)
-                    
-                #check the previous classification
-                elif not self.switches[dpid2].type == Switch.AGGREGATION :
-                    log.warning("DPID = %s, Switch Type = %s, New Type = %s - Bad Switch classification detected ", 
-                        dpid2, self.switches[dpid2].type, Switch.EDGE)
-                    #don't uncomment the next line because this was now suppose to happen
-                    #self.switches[dpid2].type = Switch.AGGREGATION
                 
     def getSwitchesByType(self, switch_type):
         '''
@@ -623,52 +571,53 @@ class Topology(object):
             otherwise wait x seconds and ask again
         '''
         
-        str = "Have all the hosts been discovered? (Current Host count = %i) (Y/N): " % len(self.hosts)
+        1
         sys.stdin.flush()
         all_hosts_discovered = raw_input(str)
              
         while all_hosts_discovered == "N" or all_hosts_discovered == "n" or all_hosts_discovered == "" :
             time.sleep(self.ALLHOSTSSLEEPTIME)
-            str = "Have all the hosts been discovered? (Current Host count = %i) (Y/N): " % len(self.hosts)
+            num_out_hosts = 0
+            for dpid in self.out_hosts:
+                num_out_hosts+=len(self.out_hosts[dpid])
+            string = "Have all the hosts been discovered? (Current Host & Ouside Host count = %i, %i) (Y/N): " % (len(self.hosts), num_out_hosts)
             sys.stdin.flush()
-            all_hosts_discovered = raw_input(str)
+            all_hosts_discovered = raw_input(string)
         
         if all_hosts_discovered == "Y" or all_hosts_discovered == "y" :
             self.ALLHOSTSDISCOVERED = True
+
+            #Classify all remaining switches as AGGREGATION
+            for dpid in self.switches.keys():
+                if self.switches[dpid].type == Switch.UNKNOWN:
+                    self.switches[dpid].type = Switch.AGGREGATION
+                    log.debug("DPID = %s, Switch Type = %s - New Switch Classified", dpid, self.switches[dpid].type)
+
             core_switch_count = 0
             agg_switch_count = 0
             edge_switch_count = 0
 
-            #classify the switches edge switch and aggregation in case a link has only been 
-            #discovered after a host already connected
+            num_out_hosts = 0
+            for dpid in self.out_hosts:
+                num_out_hosts+=len(self.out_hosts[dpid])
+
+            #Count the switches of each type
             for switch in self.switches.values() :
                 if switch.type == Switch.EDGE :
                     edge_switch_count +=1
-                    self.classifySwitchType(switch.dpid)
-            for switch in self.switches.values() :
                 if switch.type == Switch.AGGREGATION :
                     agg_switch_count +=1
-                #check all the switch without a type and set the type to core
-                if switch.type == Switch.UNKNOWN :
-                    switch.type = Switch.CORE
+                if switch.type == Switch.CORE :
                     core_switch_count += 1
+
+            log.info("\nTopology Information:\nCore Switches = %i\nAggregation Switches = %i\nEdge Switches = %i\nHosts = %i\nOutside Hosts = %i",
+                     core_switch_count, agg_switch_count, edge_switch_count, len(self.hosts), num_out_hosts)
             
-            log.info("\nTopology Information:\nCore Switches = %i\nAggregation Switches = %i\nEdge Switches = %i\nHosts = %i",
-                     core_switch_count, agg_switch_count, edge_switch_count, len(self.hosts))
-             
-            #add the rest of the core output ports
-            for dpid in self.switches.keys():
-                if self.switches[dpid].type == Switch.CORE:
-                    for port_id in self.switches[dpid].ports.keys():
-                        if not self.switch_links[dpid].has_key(port_id):
-                            if not self.out_hosts.has_key(dpid):
-                                self.out_hosts[dpid] = {}
-                                if not self.out_hosts[dpid].has_key(port_id):
-                                    self.out_hosts[dpid][port_id] = list()
-                            
-                            self.out_hosts[dpid][port_id].append((None, None))
-                            log.debug("DPID = %s, Port = %s, Mac = %s, IP = %s - A core output port was found", dpid, 
-                                port_id, "Unknown", "Unknown")
+            #for debug purposes:
+            # pprint(self.out_hosts)
+            # pprint(self.host_links)
+            # pprint(self.hosts)
+            # pprint(self.switch_links)
             
         return
 
@@ -731,6 +680,18 @@ def isIP(ipaddress):
             return False
         
     return True
+
+def isIpInNetwork(ipaddress, network):
+    '''
+    Check if an ip address belongs to a network
+
+    @param ipaddress string with an ipaddress
+    @param network string with network ex: "10.0.0.0/24"
+
+    @return True If belong
+    @return False otherwise
+    '''
+    return IPAddress(str(ipaddress)) in IPNetwork(str(network))
 
 def is_number(s):
     try:

@@ -22,7 +22,7 @@ from time import sleep
 from INIHandler import IniHandler
 
 import cPickle as pickle
-import os, socket, thread
+import os, socket, thread, ipaddr
 
 class SingleSwitchTopo(Topo):
     "Single switch connected to n self.myhosts."
@@ -150,6 +150,9 @@ class ERCSTopo( Topo ):
             host = self.addHost(host_id)
             #host = self.addHost(host_id, cpu=0.5/((self.host_no*self.edge_no)+(self.out_no)))
             
+            #set the ip of the outside host so it doesn't belong to the same subnet as the other hosts
+            #TODO:net.getNodeByName(host).setIp("10.10.0."+str(h))
+
             #initialize link record
             self.alllinks[host_id] = list()
             
@@ -259,7 +262,10 @@ class ERCSTopo( Topo ):
                 
                 #add host records
                 self.myhosts.append(host_id)
-        
+            
+            #Add hosts until you can separate the host network and the outside host network
+            len(self.myhosts)+len(self.outside_hosts)+1
+
         
 def createQueues(ercs_topo, net):
     '''
@@ -510,11 +516,14 @@ def startTopology():
     net = Mininet(controller = RemoteController, topo=ercs_topo,
                   host=CPULimitedHost, link=TCLink)
 
-    #net.addController( 'c0' )
+    for num in range(ercs_topo.out_no):
+        hostname='o%i' % (num+1)
+        hostip = '10.128.0.%i' % (num+1)
+        net.getNodeByName(hostname).setIP(hostip, 8)
+
     net.start()
 
     installStaticARPEntry(ercs_topo,net)
-    #thread.start_new_thread(runCli, (net, 1))
 
     #sleep(5)
     
@@ -522,20 +531,9 @@ def startTopology():
     # info("*** Creating "+str(len(ercs_topo.queue_bw))+" queues for each switch port... ")
     # createQueues(ercs_topo, net)
     # print "Done\n"
-
-
-    '''
-    Connecting the controller to the Topology generator
-    '''
-    waitControllertoConnectTpGenerator(ercs_topo, net)
     
     #Add remote controller
     waitControllertoConnectSwitches()
-
-
-
-    #Should wait for controller to detect all links also?
-    #sleep(5)    
     
     '''
     Make Host detectable by hosttracker
@@ -547,11 +545,15 @@ def startTopology():
     '''
     Make OutsideHost detectable by hosttracker
     '''
-    raw_input("*** Press enter when all the hosts have been discovered by the controller")
+    # raw_input("*** Press enter when all the hosts have been discovered by the controller")
     info("\n*** Making outside hosts detectable for "+ str(ercs_topo.host_detectable_timeout) +" seconds... ")
     makeHostDetectable(ercs_topo,ercs_topo.outside_hosts, net)
     print "Done\n"
 
+    '''
+    Connecting the controller to the Topology generator
+    '''
+    waitControllertoConnectTpGenerator(ercs_topo, net)
     
     '''
     Run Cli

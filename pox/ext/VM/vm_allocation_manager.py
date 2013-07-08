@@ -684,6 +684,7 @@ class VMManager(object):
         for vm1_ip in vm_ip_list:
 
             tmp_vm_ip_list.remove(vm1_ip)
+            log.debug("%s", tmp_vm_ip_list)
             for vm2_ip in tmp_vm_ip_list:
                 log.debug("vm1_ip = %s, vm2_ip = %s", vm1_ip, vm2_ip)
                 #check to which edge switches and ports they are connected
@@ -703,6 +704,7 @@ class VMManager(object):
                 try:
                     sp = shortestPath(new_graph, edge1, edge2)
                 except Exception, e:
+                    print e
                     return None
                 log.debug("E1 = %s, E2 = %s, Path = %s - Calculating the shortest path... DONE", edge1, edge2, sp)
 
@@ -735,7 +737,7 @@ class VMManager(object):
                 #install the rules
                 self.rules.installInterVMRules(vm1_ip, vm2_ip, inter_vm_rules)
 
-                return True
+        return True
                 
 
     def cleanVariables(self):

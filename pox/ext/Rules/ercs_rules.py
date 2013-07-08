@@ -81,32 +81,27 @@ class Rules(object):
         #if supernetting flag is not activated
         else :
             
-            # #edge rules
-            # (in_edge_rule, out_edge_rule) = self.installHostRuleOnSwitch(host_id, host_ip, edge_id, edge_port_in, edge_port_out, queue_type)
+            #edge rules
+            (in_edge_rule, out_edge_rule) = self.installHostRuleOnSwitch(host_id, host_ip, edge_id, edge_port_in, edge_port_out, queue_type)
             
-            # #aggregation rules
-            # (in_agg_rule, out_agg_rule) = self.installHostRuleOnSwitch(host_id, host_ip, agg_id, agg_port_in, agg_port_out, queue_type)
+            #aggregation rules
+            (in_agg_rule, out_agg_rule) = self.installHostRuleOnSwitch(host_id, host_ip, agg_id, agg_port_in, agg_port_out, queue_type)
             
-            # #core rules
-            # (in_core_rule, out_core_rule) = self.installHostRuleOnSwitch(host_id, host_ip, core_id, core_port_in, core_port_out, queue_type)
-            
-            #check if any error occured
-            # if (edge_rules == None) or (agg_rules == None) or (core_rules == None) :
-            #     log.info("Installing all rules for each switch type... Fail")
-            #     return
+            #core rules
+            (in_core_rule, out_core_rule) = self.installHostRuleOnSwitch(host_id, host_ip, core_id, core_port_in, core_port_out, queue_type)
             
             #store all of the rules in the dictionary
             if not self.vm_rules.has_key(host_id):
                 self.vm_rules[host_id] = list()
 
-            # self.vm_rules[host_id].append(SwitchRule(in_edge_rule, edge_id, edge_port_in, host_ip))
-            # self.vm_rules[host_id].append(SwitchRule(out_edge_rule, edge_id, edge_port_out, host_ip))
+            self.vm_rules[host_id].append(SwitchRule(in_edge_rule, edge_id, edge_port_in, host_ip))
+            self.vm_rules[host_id].append(SwitchRule(out_edge_rule, edge_id, edge_port_out, host_ip))
 
-            # self.vm_rules[host_id].append(SwitchRule(in_agg_rule, core_id, agg_port_in, host_ip))
-            # self.vm_rules[host_id].append(SwitchRule(out_agg_rule, core_id, agg_port_out, host_ip))
+            self.vm_rules[host_id].append(SwitchRule(in_agg_rule, core_id, agg_port_in, host_ip))
+            self.vm_rules[host_id].append(SwitchRule(out_agg_rule, core_id, agg_port_out, host_ip))
 
-            # self.vm_rules[host_id].append(SwitchRule(in_core_rule, edge_id, core_port_in, host_ip))
-            # self.vm_rules[host_id].append(SwitchRule(out_core_rule, edge_id, core_port_out, host_ip))
+            self.vm_rules[host_id].append(SwitchRule(in_core_rule, edge_id, core_port_in, host_ip))
+            self.vm_rules[host_id].append(SwitchRule(out_core_rule, edge_id, core_port_out, host_ip))
         
         log.info("Installing all rules for each switch type... Done")
             
