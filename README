@@ -1,3 +1,46 @@
+Openflow-DC-Framework
+=====================
+
+How to develop your own logic:
+
+NOTE: Event-Oriented programming
+
+VM ALLOCATION/MIGRATION:
+- Under the ext/vm you can find the files vm_allocation_manager & file vm_migration_manager. Both of them are stricly for developing the algoritms for respectively vm allocation and vm migration.
+- Inter virtual machine communication for now implements dijkstra algorithm. Change to fit your needs/experiments.
+
+STATISTICS:
+- For now just bit rate, but it can be easily added everything supported by the OF protocol. More info check the ercs_stats file.
+- Exporting Statistics for now it saves in a file everytime new statistics arrive. It is oriented for the algorithms developed for allocation. So change to suit your own. A more general approach should be deployed soon. Maybe Later save in database (the one for the webplatform).
+
+RULES:
+- Rules are installed according to the provided methods.
+- Inter virtual machine rules are also taken into consideration.
+- Check ercs_rules for detailed information
+
+EMULATOR STUFF
+==============
+
+TOPOLOGY GENERATOR:
+- Generates tree and fat tree topologies. Use the provided 'conf.ini' file to configure the desired topology.
+- Adding features: 
+  - Adding traffic generator is as trivial as launching the generator itself. Meaning that the process of
+
+How to Configure:
+
+- There is a file called 'conf.ini' where you can configure the basic things defined by the framework, 
+can also add more if you need.
+
+
+How to launch:
+
+  ./pox.py ercs
+
+
+
+POX README
+==========
+
 POX is a network controller written in Python.
 
 POX officially requires Python 2.7 (though much of it will work fine
