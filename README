@@ -11,31 +11,31 @@ DIR:poxbetta/ext/
 How to develop your own logic:
 
 VM ALLOCATION/MIGRATION:
-- Under the ext/vm you can find the files vm_allocation_manager & file vm_migration_manager. Both of them are stricly for developing the algoritms for respectively vm allocation and vm migration.
-- Inter virtual machine communication (inside vm allocation manager) for now implements dijkstra algorithm. Change to fit your needs/experiments.
+  - Under the ext/vm you can find the files vm_allocation_manager & file vm_migration_manager. Both of them are stricly for developing the algoritms for respectively vm allocation and vm migration.
+  - Inter virtual machine communication (inside vm allocation manager) for now implements dijkstra algorithm. Change to fit your needs/experiments.
 
 STATISTICS:
-- For now just bit rate, but it can be easily added everything supported by the OF protocol. More info check the ercs_stats file.
-- Exporting Statistics for now it saves in a file everytime new statistics arrive. It is oriented for the algorithms developed for allocation. So change to suit your own. A more general approach should be deployed soon. Maybe Later save in database (the one for the webplatform).
+  - For now just bit rate, but it can be easily added everything supported by the OF protocol. More info check the ercs_stats file.
+  - Exporting Statistics for now it saves in a file everytime new statistics arrive. It is oriented for the algorithms developed for allocation. So change to suit your own. A more general approach should be deployed soon. Maybe Later save in database (the one for the webplatform).
 
 RULES:
-- Rules are installed according to the provided methods.
-- Inter virtual machine rules are also taken into consideration.
-- Check ercs_rules for detailed information
+  - Rules are installed according to the provided methods.
+  - Inter virtual machine rules are also taken into consideration.
+  - Check ercs_rules for detailed information
 
 XENCOMMUNICATOR:
-- For now it's not working, but there's an open issue to solve this problem, and also some directives of how to solve it.
+  - For now it's not working, but there's an open issue to solve this problem, and also some directives of how to solve it.
   - i.e. - General Hypervisor folder, and then inside developers can catch the events and contact the specific hypervisor.
 
 INITHANDLER:
-- The INITHANDLER reads the 'conf.ini' file and put's it in a dictionary (check any of the modules for examples)
+  - The INITHANDLER reads the 'conf.ini' file and put's it in a dictionary (check any of the modules for examples)
 
 NOTE: Event-Oriented programming (So catch events and do what you want with them)
 
 
 How to Configure:
 
-- There is a file called 'conf.ini' where you can configure the basic things defined by the framework, 
+  - There is a file called 'conf.ini' where you can configure the basic things defined by the framework, 
 can also add more if one needs.
 
 
@@ -44,13 +44,13 @@ How to launch:
   ./pox.py ercs
   
   with debug,
-  ./pox.py ercs log.level --DEBUG
+    ./pox.py ercs log.level --DEBUG
 
 
 Requirements:
-- python
-- python-netaddr
-- ...
+  - python
+  - python-netaddr
+  - ...
 
 ==============
 EMULATOR STUFF
@@ -60,14 +60,14 @@ DIR:poxbetta/ext/Topology Generator (MN)
 How to develop your own logic:
 
 TOPOLOGY GENERATOR:
-- Generates tree and fat tree topologies. Use the provided 'conf.ini' file to configure the desired topology.
-- Adding features: 
-  - Adding traffic generator is as trivial as launching the generator itself. Meaning that the process of automatically start the traffic generation between hosts it is done automatically. One just needs to specify the command.
+  - Generates tree and fat tree topologies. Use the provided 'conf.ini' file to configure the desired topology.
+  - Adding features: 
+    - Adding traffic generator is as trivial as launching the generator itself. Meaning that the process of automatically start the traffic generation between hosts it is done automatically. One just needs to specify the command.
 
 
 How to install:
 
-- Please use mininet provided image, or install mininet manually. (I advise to use the image as it works out of the box)
+  - Please use mininet provided image, or install mininet manually. (I advise to use the image as it works out of the box)
 
 
 How to launch:
@@ -82,12 +82,12 @@ DIR:poxbetta/ext/VM Requests Generator
 - Use to Request Virtual Machines automatically
 
 Arguments:
-1 - IP of controller
-2 - Port
-3 - Request Rate (time interval between requests)
-4 - Average holding time (of vm)
-5 - number of types of user(*)
-6+ - Percentage of bandwidth for each user(*)
+  1 - IP of controller
+  2 - Port
+  3 - Request Rate (time interval between requests)
+  4 - Average holding time (of vm)
+  5 - number of types of user(*)
+  6+ - Percentage of bandwidth for each user(*)
 
 (*)currently not working the types of users since mininet doesn't support yet minimum/maximum bandwidth ratio
 
