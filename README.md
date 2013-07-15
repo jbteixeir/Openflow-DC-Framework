@@ -6,7 +6,7 @@ Describe the Framework...
 
 CONTROLLER STUFF
 ----------------
-DIR:poxbetta/ext/
+*DIR:poxbetta/ext/*
 
 **How to develop your own logic:**
 
@@ -55,7 +55,7 @@ can also add more if one needs.
 
 EMULATOR STUFF
 --------------
-DIR:poxbetta/ext/Topology Generator (MN)
+*DIR:poxbetta/ext/Topology Generator (MN)*
 
 **How to develop your own logic:**
 
@@ -77,7 +77,7 @@ TOPOLOGY GENERATOR:
 
 VIRTUAL MACHINE REQUESTER STUFF
 -------------------------------
-DIR:poxbetta/ext/VM Requests Generator
+*DIR:poxbetta/ext/VM Requests Generator*
 
 - Use to Request Virtual Machines automatically
 
