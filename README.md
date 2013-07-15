@@ -3,9 +3,9 @@ Openflow-DC-Framework
 
 Describe the Framework...
 
-================
+
 CONTROLLER STUFF
-================
+----------------
 DIR:poxbetta/ext/
 
 How to develop your own logic:
@@ -52,9 +52,9 @@ Requirements:
   - python-netaddr
   - ...
 
-==============
+
 EMULATOR STUFF
-==============
+--------------
 DIR:poxbetta/ext/Topology Generator (MN)
 
 How to develop your own logic:
@@ -74,9 +74,9 @@ How to launch:
 
   ./tpgeneratormn2.0.py
   
-===============================
+
 VIRTUAL MACHINE REQUESTER STUFF
-===============================
+-------------------------------
 DIR:poxbetta/ext/VM Requests Generator
 
 - Use to Request Virtual Machines automatically
