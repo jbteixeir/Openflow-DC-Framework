@@ -8,7 +8,7 @@ CONTROLLER STUFF
 ----------------
 DIR:poxbetta/ext/
 
-How to develop your own logic:
+**How to develop your own logic:**
 
 VM ALLOCATION/MIGRATION:
   - Under the ext/vm you can find the files vm_allocation_manager & file vm_migration_manager. Both of them are stricly for developing the algoritms for respectively vm allocation and vm migration.
@@ -30,16 +30,16 @@ XENCOMMUNICATOR:
 INITHANDLER:
   - The INITHANDLER reads the 'conf.ini' file and put's it in a dictionary (check any of the modules for examples)
 
-NOTE: Event-Oriented programming (So catch events and do what you want with them)
+**NOTE**: Event-Oriented programming (So catch events and do what you want with them)
 
 
-How to Configure:
+**How to Configure:**
 
   - There is a file called 'conf.ini' where you can configure the basic things defined by the framework, 
 can also add more if one needs.
 
 
-How to launch:
+**How to launch:**
 
   ./pox.py ercs
   
@@ -47,7 +47,7 @@ How to launch:
     ./pox.py ercs log.level --DEBUG
 
 
-Requirements:
+*Requirements:*
   - python
   - python-netaddr
   - ...
@@ -57,7 +57,7 @@ EMULATOR STUFF
 --------------
 DIR:poxbetta/ext/Topology Generator (MN)
 
-How to develop your own logic:
+**How to develop your own logic:**
 
 TOPOLOGY GENERATOR:
   - Generates tree and fat tree topologies. Use the provided 'conf.ini' file to configure the desired topology.
@@ -65,12 +65,12 @@ TOPOLOGY GENERATOR:
     - Adding traffic generator is as trivial as launching the generator itself. Meaning that the process of automatically start the traffic generation between hosts it is done automatically. One just needs to specify the command.
 
 
-How to install:
+**How to install:**
 
   - Please use mininet provided image, or install mininet manually. (I advise to use the image as it works out of the box)
 
 
-How to launch:
+**How to launch:**
 
   ./tpgeneratormn2.0.py
   
@@ -96,8 +96,8 @@ Examples:
 
   python ./vmrequesterpoisson.py 127.0.0.1 3000 10 290 2 0.3 0.7
 
-NOTE: For now the request requirements are embedded in the code, so one needs to change it to have the desired requests requirements. In the future maybe config file or more arguments will be added to fit the desired requirements.
-NOTE: Might need root permissions to run some of the components
+**NOTE:** For now the request requirements are embedded in the code, so one needs to change it to have the desired requests requirements. In the future maybe config file or more arguments will be added to fit the desired requirements.
+**NOTE:** Might need root permissions to run some of the components
 
 
 
