@@ -306,7 +306,7 @@ class Topology(object):
     def _handle_HostJoin(self, event):
         '''
         '''
-        log.error("mac=%s, ip=%s, dpid=%s, inport=%s",event.host_mac_address, event.host_ip_address, event.dpid, event.port)
+        log.debug("mac=%s, ip=%s, dpid=%s, inport=%s",event.host_mac_address, event.host_ip_address, event.dpid, event.port)
         #If this ip belong to the server ip pool (hosts)
         if isIpInNetwork(event.host_ip_address, self.hosts_ip_pool) :
             #add this host to the host dict
@@ -572,7 +572,6 @@ class Topology(object):
             otherwise wait x seconds and ask again
         '''
         
-        1
         sys.stdin.flush()
         all_hosts_discovered = raw_input(str)
              

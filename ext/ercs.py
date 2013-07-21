@@ -141,7 +141,7 @@ class ERCS():
             args.append(inithandler.read_ini_value(section, key))
             key = "dhcpip"
             args.append(inithandler.read_ini_value(section, key))
-            print("%s,%s,%s",args[0],args[1],args[2])
+            # log.debug("%s,%s,%s",args[0],args[1],args[2])
         except Exception, e:
             log.error("INI File doesn't contain expected values")
             log.error(e)

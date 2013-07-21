@@ -263,8 +263,9 @@ class host_tracker (EventMixin):
     if packet.type == ethernet.LLDP_TYPE:    # Ignore LLDP packets
       return
 
-    a = packet.find('arp')
-    if not a: return
+    # a = packet.find('arp')
+    # if  a: return
+    dir(packet)
 
     # This should use Topology later 
     if not core.openflow_discovery.is_edge_port(dpid, inport):
@@ -297,7 +298,7 @@ class host_tracker (EventMixin):
         #log.warning("Possible duplicate: %s at time %i, now (%i %i), time %i",
         #            str(macEntry), macEntry.lastTimeSeen(),
         #            dpid, inport, time.time())
-        pass
+        return
       # should we create a whole new entry, or keep the previous host info?
       # for now, we keep it: IP info, answers pings, etc.
       macEntry.dpid = dpid

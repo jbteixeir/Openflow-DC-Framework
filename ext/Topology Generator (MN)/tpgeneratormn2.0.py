@@ -551,15 +551,15 @@ def startTopology():
     print "Done\n"
     
     '''
+    Connecting the controller to the Topology generator
+    '''
+    waitControllertoConnectTpGenerator(ercs_topo, net)
+
+    '''
     Run Cli
     '''
     info( '\n*** Running CLI\n' )
     CLI( net )
-
-    '''
-    Connecting the controller to the Topology generator
-    '''
-    waitControllertoConnectTpGenerator(ercs_topo, net)
 
     '''
     Stop Topology
