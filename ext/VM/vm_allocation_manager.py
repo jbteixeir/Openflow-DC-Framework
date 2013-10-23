@@ -1297,7 +1297,7 @@ class VMManager(object):
                             	temp_link_ratio = self.getLinkRatioWithSafeMargin(switch.dpid, port.id, network_margin)
                             	#THIS IS JUST A QUICK FIX, NOT GOOD PROGRAMMING LOGIC HERE
                             	if temp_link_ratio > self.max_bw_link_ratio:
-                            		return self.max_bw_link_ratio+1
+                            		return self.max_bw_switch_ratio+1
                             		
                                 switch_in_bw_ratio += temp_link_ratio
                                 added_in_nm +=1
@@ -1312,7 +1312,7 @@ class VMManager(object):
                             	temp_link_ratio = self.getLinkRatioWithSafeMargin(switch.dpid, port.id, network_margin)
                             	#THIS IS JUST A QUICK FIX, NOT GOOD PROGRAMMING LOGIC HERE
                             	if temp_link_ratio > self.max_bw_link_ratio:
-                            		return self.max_bw_link_ratio+1
+                            		return self.max_bw_switch_ratio+1
                             		
                                 switch_out_bw_ratio += temp_link_ratio
                                 added_out_nm +=1
