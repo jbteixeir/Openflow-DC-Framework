@@ -455,7 +455,7 @@ class VMManager(object):
         self.vms_allocated[self.host_candidate].append(requirements)
         # set holding time
         #TODO: Allow to update the holding_time
-        holding_time = requirements[4]
+        holding_time = requirements[5]
         threading.Timer(holding_time, self.removeVMAllocation, [self.host_candidate, requirements]).start()
 
         #install the rules
@@ -610,7 +610,7 @@ class VMManager(object):
         self.vms_allocated[self.host_candidate].append(requirements)
         # set holding time
         #TODO: Allow to update the holding_time
-        holding_time = nextTime(1/self.host_holding_time)
+        holding_time = requirements[5]
         threading.Timer(holding_time, self.removeVMAllocation, [self.host_candidate, requirements]).start()
         
         #install the rules
